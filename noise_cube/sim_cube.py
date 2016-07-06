@@ -13,6 +13,7 @@ import seaborn
 from pyuvwsim import convert_enu_to_ecef, evaluate_baseline_uvw
 import time
 import sys
+import shutil
 from astropy.io import fits
 seaborn.set_style('ticks')
 
@@ -223,7 +224,7 @@ def evaluate_effective_noise_rms(
     return sigma_pq, sigma_im
 
 
-def plot_telescope(x, y, r_cut, station_d=35.0):
+def plot_telescope(x, y, r_cut, station_d=35.0, filename=None):
     # Plot the telescope model
     fig = plt.figure(figsize=(8, 8))
     ax = fig.add_subplot(111)
@@ -237,28 +238,38 @@ def plot_telescope(x, y, r_cut, station_d=35.0):
     ax.set_ylim(-r_cut*1.2, r_cut*1.2)
     ax.set_xlabel('east (m)')
     ax.set_ylabel('north (m)')
-    fig.savefig('stations.png')
+    if filename:
+        fig.savefig(filename)
+    else:
+        plt.show()
     plt.close(fig)
 
 
-def plot_uv_coords(uu, vv, cut_r=None, units='m', filename=None):
+def plot_uv_coords(uu, vv, plot_r=None, units='m', filename=None, r_lim=None):
     fig = plt.figure(figsize=(8, 8))
     ax = fig.add_subplot(111)
     ax.plot(uu, vv, 'k.', ms=2.0, alpha=0.01)
     ax.plot(-uu, -vv, 'k.', ms=2.0, alpha=0.01)
-    if cut_r:
-        c = plt.Circle((0, 0), cut_r, fill=False, color='r', lw=2.0, alpha=1.0)
-        ax.add_artist(c)
+    if plot_r is not None:
+        for r in plot_r:
+            c = plt.Circle((0, 0), r, fill=False, color='r', lw=2.0, alpha=1.0)
+            ax.add_artist(c)
     ax.grid()
     ax.set_xlabel('uu (%s)' % units)
     ax.set_ylabel('vv (%s)' % units)
-    if not filename:
-        filename = 'uv_scatter.png'
-    fig.savefig(filename)
+    if r_lim:
+        ax.set_xlim(-r_lim, r_lim)
+        ax.set_ylim(-r_lim, r_lim)
+    if filename:
+        if not os.path.isdir(os.path.dirname(filename)):
+            os.makedirs(os.path.dirname(filename))
+        fig.savefig(filename)
+    else:
+        plt.show()
     plt.close(fig)
 
 
-def load_telescope(r_cut, station_d, lon, lat, plot=False):
+def load_telescope(r_cut, station_d, lon, lat, plot_filename=None):
     # Load telescope model
     coords = np.loadtxt(join('v5.tm', 'layout.txt'))
     x, y, z = coords[:, 0], coords[:, 1], coords[:, 2]
@@ -268,13 +279,14 @@ def load_telescope(r_cut, station_d, lon, lat, plot=False):
     y = y[np.where(r < r_cut)]
     z = z[np.where(r < r_cut)]
     num_stations = x.shape[0]
-    if plot:
-        plot_telescope(x, y, r_cut, station_d=station_d)
+    if plot_filename:
+        plot_telescope(x, y, r_cut, station_d=station_d, filename=plot_filename)
     x, y, z = convert_enu_to_ecef(x, y, z, lon, lat)
     return x, y, z
 
 
-def gen_uvw_m(x, y, z, obs_length_h, mjd_mid, t_acc, ra, dec, plot=False):
+def gen_uvw_m(x, y, z, obs_length_h, mjd_mid, t_acc, ra, dec,
+              plot_filename=None):
     num_times = int((obs_length_h * 3600.0) / t_acc)
     mjd_start = mjd_mid - ((obs_length_h / 2) / 24)
     uu, vv, ww = np.array([]), np.array([]), np.array([])
@@ -289,55 +301,94 @@ def gen_uvw_m(x, y, z, obs_length_h, mjd_mid, t_acc, ra, dec, plot=False):
         ww = np.concatenate((ww, ww_))
     print('- Generated uv %i coordinates in %.2f s'
           % (uu.shape[0], time.time() - t0))
-    if plot:
-        plot_uv_coords(uu, vv)
+    if plot_filename:
+        plot_uv_coords(uu, vv, filename=plot_filename)
+        plot_uv_coords(uu, vv, filename=plot_filename + '_z1.png', r_lim=100.0,
+                       plot_r=[35.0])
+        plot_uv_coords(uu, vv, filename=plot_filename + '_z2.png', r_lim=2000.0,
+                       plot_r=[1400.0])
+
     return uu, vv, ww, num_times
 
 
+def test_eval_noise():
+    freq_hz = 50.0e3
+    evaluate_noise_rms(freq_hz, num_stations=200, verbose=True)
+    evaluate_effective_noise_rms(freq_hz, num_stations=200, obs_length_h=6.0,
+                                 num_times=72, verbose=True)
+
+
+def write_fits_cube(cube, filename):
+    # TODO(BM) convert units jy/beam -> K
+    # TODO(BM) add fits header, WCS etc.
+    # TODO(BM) write out one plane at a time? http://goo.gl/owain9
+    t0 = time.time()
+    hdu = fits.PrimaryHDU(cube)
+    hdu_list = fits.HDUList([hdu])
+    hdu_list.writeto(filename, clobber=True)
+    print('write fits: %.2f s' % (time.time() - t0))
+
+
+
 def main():
-    # Simulate 1000h observation as a 4-8h observation with 1000h noise.
+    # Simulate 1000h observation as a repeated 5h observation with 1000h noise.
+    # Choose to simulate with bandwidths of 20MHz (200, 100kHz) channels
+    # around 60 MHz, 150 MHz and 200 MHz
+    # (similar to Cathryn Trott's bandpass memo)
+
     # TODO(BM) compare t_sys with GSM value?
     # TODO(BM) Define observation track ra, dec, mjd / ha range.
-    freqs_hz = np.linspace(100e6, 120e6, 10)
-    # freqs_hz = np.array([50e6])
+    # TODO(BM) Image size? use hpbw at highest frequency?
+    # hpbw = np.degrees(wavelength / station_d)
+    # size = (r_cut * 2) / station_d
+    psf = True
+    freqs_hz = np.linspace(50e6, 70e6, 201)
+    # freqs_hz = np.linspace(50e6, 70e6, 5)
     lon, lat = 116.63128900, -26.69702400
     ra, dec = 68.698903779331502, -26.568851215532160
     mjd_mid = 57443.4375000000
     station_d = 35.0
-    r_cut_uv_l = None  # cut radius in wavelengths or None to disable
-    # TODO(BM) add an inner uv cut as well as outer?
-    # TODO(BM) dont want to do a lambda cut across the whole band but
-    #          for channels around certain freqs as in Cath T's bandpass memo
-    obs_length_h = 6.0
+    obs_length_h = 5.0
     target_obs_length_h = 1000.0
-    t_acc = 300.0
+    t_acc = 60.0
     bw_hz = 100e3
-    im_size = 1024  # TODO(BM) set this properly!
-    fov_deg = 10.0  # TODO(BM) set this properly!
-    if not os.path.isdir('uv_plots'):
-        os.makedirs('uv_plots')
+    # Image settings
+    uv_range_m = [35, 1400]
+    inner = int(math.ceil((uv_range_m[0] * freqs_hz.max()) / const.c.value))
+    outer = int(math.ceil((uv_range_m[1] * freqs_hz.min()) / const.c.value))
+    print(inner, outer)
+    lambda_cut = [10, 230]
 
-    # hpbw = np.degrees(wavelength / station_d)
-    # size = (r_cut * 2) / station_d
+    im_size = 1024
+    fov_deg = 10.0
+    weights = 'uniform'
+    algorithm = 'W-projection'
+    # algorithm = 'FFT'
 
-    # Load the telescope model.
-    r_cut = r_cut_uv_l * (const.c.value / freqs_hz.min()) \
-        if r_cut_uv_l else 1.5e3
-    x, y, z = load_telescope(r_cut, station_d, lon, lat, plot=True)
+    # Outputs
+    results_dir = join('results', 'psf_50-70MHz_100kHz_5h_60s')
+    cube_filename = ('psf_l_cut_%i_%i_%s.fits' %
+                     (lambda_cut[0], lambda_cut[1], weights))
 
-    # Generate uvw coordinates in m
+    # Create results directory (remove existing)
+    if os.path.isdir(results_dir):
+        shutil.rmtree(results_dir)
+    os.makedirs(results_dir)
+
+    # Load the telescope model and generate uvw coordinates (in m)
+    r_cut = lambda_cut[1] * (const.c.value / freqs_hz.min()) \
+        if lambda_cut else 1.5e3
+    x, y, z = load_telescope(r_cut, station_d, lon, lat,
+                             join(results_dir, 'telescope.png'))
     uu, vv, ww, num_times = gen_uvw_m(x, y, z, obs_length_h, mjd_mid, t_acc,
-                                      ra, dec, plot=True)
+                                      ra, dec,
+                                      join(results_dir, 'uv_scatter.png'))
 
-    # evaluate_noise_rms(freqs_hz[-1], num_stations=x.shape[0], verbose=True)
-    # evaluate_effective_noise_rms(freqs_hz[-1], num_stations=x.shape[0],
-    #                              obs_length_h=obs_length_h,
-    #                              num_times=num_times,
-    #                              verbose=True)
-
-    # Create imager object
-    imager = oskar.imager.Imager('single')
-    images = np.empty((freqs_hz.shape[0], im_size, im_size))
+    # Create imager object and allocate empty image cube
+    imager = oskar.Imager('single')
+    cube = np.empty((freqs_hz.shape[0], im_size, im_size))
+    print('- Image cube memory required %.2f MiB'
+          % (freqs_hz.shape[0] * im_size**2 * 8 / 1024**2))
 
     for i, freq_hz in enumerate(freqs_hz):
         t0 = time.time()
@@ -348,45 +399,49 @@ def main():
         uu_l = np.copy(uu) / wavelength
         vv_l = np.copy(vv) / wavelength
         ww_l = np.copy(ww) / wavelength
-        if r_cut_uv_l:
+        if lambda_cut:
             r_uv = (uu_l**2 + vv_l**2)**0.5
-            uu_l = uu_l[np.where(r_uv < r_cut_uv_l)]
-            vv_l = vv_l[np.where(r_uv < r_cut_uv_l)]
-            ww_l = ww_l[np.where(r_uv < r_cut_uv_l)]
+            cut_idx = np.where(np.logical_and(r_uv >= lambda_cut[0],
+                                              r_uv <= lambda_cut[1]))
+            uu_l, vv_l, ww_l = uu_l[cut_idx], vv_l[cut_idx], ww_l[cut_idx]
             plot_uv_coords(uu_l * wavelength, vv_l * wavelength,
-                           r_cut_uv_l * wavelength,
-                           filename=join('uv_plots',
+                           np.array(lambda_cut) * wavelength,
+                           filename=join(results_dir, 'uvw',
                                          'uv_scatter_%06.2fMHz.png'
-                                         % (freq_hz/1e6)))
+                                         % (freq_hz/1e6)),
+                           r_lim=lambda_cut[1] * (const.c.value / freqs_hz[0]))
+            plot_uv_coords(uu_l, vv_l, np.array(lambda_cut),
+                       filename=join(results_dir, 'uvw',
+                                     'uv_scatter_%06.2fMHz_wavelengths.png'
+                                     % (freq_hz / 1e6)),
+                       r_lim=lambda_cut[1]*1.1, units='wavelengths')
 
-        # Generate noise visibility amplitudes
-        sigma_pq, sigma_im = evaluate_effective_noise_rms(
-            freq_hz, num_times=num_times, bw_hz=bw_hz, num_stations=x.shape[0],
-            obs_length_h=obs_length_h, target_obs_length_h=target_obs_length_h,
-            verbose=False)
-        # sigma_pq /= 2**0.5
-        # amp = (np.random.randn(uu_l.shape[0]) * sigma_pq +
-        #        1.0j * np.random.randn(uu_l.shape[0]) * sigma_pq)
-        amp = np.ones(uu_l.shape[0], dtype='c16')
+        # Generate visibility amplitudes
+        if psf:
+            amp = np.ones(uu_l.shape[0], dtype='c16')
+        else:
+            sigma_pq, sigma_im = evaluate_effective_noise_rms(
+                freq_hz, num_times=num_times, bw_hz=bw_hz,
+                num_stations=x.shape[0], obs_length_h=obs_length_h,
+                target_obs_length_h=target_obs_length_h, verbose=False)
+            print(': image noise ~ %6.1f uJy/beam' % (sigma_im * 1e6), end=' ')
+            sigma_pq /= 2**0.5
+            amp = (np.random.randn(uu_l.shape[0]) * sigma_pq +
+                   1.0j * np.random.randn(uu_l.shape[0]) * sigma_pq)
 
-        image = imager.make_image(uu_l, vv_l, ww_l, amp, np.ones_like(uu_l),
-                                  fov_deg, im_size)
-        images[i, :, :] = image
+        # Make image
+        image = imager.make_image(uu_l, vv_l, ww_l, amp, fov_deg, im_size,
+                                  weighting=weights, algorithm=algorithm)
+        cube[i, :, :] = image
 
-        print(': image noise ~ %6.1f uJy/beam' % (sigma_im * 1e6), end=' ')
-        print('(%6.1f)' % (np.std(image) * 1e6), end=' ')
+        if not psf:
+            print('(%6.1f)' % (np.std(image) * 1e6), end=' ')
         print(': %.2f s' % (time.time() - t0))
         sys.stdout.flush()
 
-    # TODO convert units jy/beam -> K
-    t0 = time.time()
-    hdu = fits.PrimaryHDU(images)
-    hdulist = fits.HDUList([hdu])
-    if r_cut_uv_l:
-        hdulist.writeto('test_l_cut_%.1f.fits' % r_cut_uv_l, clobber=True)
-    else:
-        hdulist.writeto('test_no_l_cut.fits', clobber=True)
-    print('write fits: %.2f s' % (time.time() - t0))
+    write_fits_cube(cube, join(results_dir, cube_filename))
+    write_fits_cube(np.diff(cube, axis=0),
+                    join(results_dir, 'diff_' + cube_filename))
 
 
 if __name__ == '__main__':
@@ -394,6 +449,9 @@ if __name__ == '__main__':
     # plot_sigma_im()
     # element_effective_area(50.0e6, debug_plot=True)
     # system_temp(50e6, debug_plot=True)
+    # test_eval_noise()
+
+
 
 
 
