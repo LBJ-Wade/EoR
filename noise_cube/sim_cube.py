@@ -333,7 +333,7 @@ def write_fits_cube(cube, filename):
 def main():
     # Simulate 1000h observation as a repeated 5h observation with 1000h noise.
     # Choose to simulate with bandwidths of 20MHz (200, 100kHz) channels
-    # around 60 MHz, 150 MHz and 200 MHz
+    # starting at 50 MHz, 120 MHz and 200 MHz
     # (similar to Cathryn Trott's bandpass memo)
 
     # TODO(BM) compare t_sys with GSM value?
@@ -341,9 +341,8 @@ def main():
     # TODO(BM) Image size? use hpbw at highest frequency?
     # hpbw = np.degrees(wavelength / station_d)
     # size = (r_cut * 2) / station_d
-    psf = True
-    freqs_hz = np.linspace(50e6, 70e6, 201)
-    # freqs_hz = np.linspace(50e6, 70e6, 5)
+    psf = False
+    freqs_hz = 50e6 + (np.arange(200) * 100e3 + 50e3)
     lon, lat = 116.63128900, -26.69702400
     ra, dec = 68.698903779331502, -26.568851215532160
     mjd_mid = 57443.4375000000
@@ -352,22 +351,27 @@ def main():
     target_obs_length_h = 1000.0
     t_acc = 60.0
     bw_hz = 100e3
+
     # Image settings
     uv_range_m = [35, 1400]
     inner = int(math.ceil((uv_range_m[0] * freqs_hz.max()) / const.c.value))
     outer = int(math.ceil((uv_range_m[1] * freqs_hz.min()) / const.c.value))
     print(inner, outer)
-    lambda_cut = [10, 230]
-
+    lambda_cut = [10, 230]  # 50-70 MHz
+    # lambda_cut = [20, 550]  # 120-140 MHz
+    # lambda_cut = [30, 900]  # 200-220 MHz
     im_size = 1024
-    fov_deg = 10.0
+    fov_deg = 10.0   # 50 MHz
+    # fov_deg = 4.2  # 120 MHz
+    # fov_deg = 2.5  # 200 MHz
     weights = 'uniform'
     algorithm = 'W-projection'
     # algorithm = 'FFT'
+    plot_uv_lambda_cut = False
 
     # Outputs
-    results_dir = join('results', 'psf_50-70MHz_100kHz_5h_60s')
-    cube_filename = ('psf_l_cut_%i_%i_%s.fits' %
+    results_dir = join('results', 'noise_50-70MHz_100kHz_5h_60s')
+    cube_filename = ('noise_l_cut_%i_%i_%s.fits' %
                      (lambda_cut[0], lambda_cut[1], weights))
 
     # Create results directory (remove existing)
@@ -404,17 +408,19 @@ def main():
             cut_idx = np.where(np.logical_and(r_uv >= lambda_cut[0],
                                               r_uv <= lambda_cut[1]))
             uu_l, vv_l, ww_l = uu_l[cut_idx], vv_l[cut_idx], ww_l[cut_idx]
-            plot_uv_coords(uu_l * wavelength, vv_l * wavelength,
-                           np.array(lambda_cut) * wavelength,
-                           filename=join(results_dir, 'uvw',
-                                         'uv_scatter_%06.2fMHz.png'
-                                         % (freq_hz/1e6)),
-                           r_lim=lambda_cut[1] * (const.c.value / freqs_hz[0]))
-            plot_uv_coords(uu_l, vv_l, np.array(lambda_cut),
-                       filename=join(results_dir, 'uvw',
-                                     'uv_scatter_%06.2fMHz_wavelengths.png'
-                                     % (freq_hz / 1e6)),
-                       r_lim=lambda_cut[1]*1.1, units='wavelengths')
+            if plot_uv_lambda_cut:
+                filename = join(results_dir, 'uvw',
+                                'uv_scatter_%06.2fMHz.png' % (freq_hz/1e6))
+                plot_uv_coords(uu_l * wavelength, vv_l * wavelength,
+                               np.array(lambda_cut) * wavelength,
+                               filename=filename,
+                               r_lim=lambda_cut[1]*(const.c.value/freqs_hz[0]))
+                filename = join(results_dir, 'uvw',
+                                'uv_scatter_%06.2fMHz_wavelengths.png'
+                                % (freq_hz / 1e6))
+                plot_uv_coords(uu_l, vv_l, np.array(lambda_cut),
+                               filename=filename,
+                               r_lim=lambda_cut[1]*1.1, units='wavelengths')
 
         # Generate visibility amplitudes
         if psf:
