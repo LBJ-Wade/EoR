@@ -364,13 +364,13 @@ def main():
     fov_deg = 10.0   # 50 MHz
     # fov_deg = 4.2  # 120 MHz
     # fov_deg = 2.5  # 200 MHz
-    weights = 'uniform'
+    weights = 'natural'
     algorithm = 'W-projection'
     # algorithm = 'FFT'
     plot_uv_lambda_cut = False
 
     # Outputs
-    results_dir = join('results', 'noise_50-70MHz_100kHz_5h_60s')
+    results_dir = join('results', 'noise_50-70MHz_100kHz_5h_60s_%s' % weights)
     cube_filename = ('noise_l_cut_%i_%i_%s.fits' %
                      (lambda_cut[0], lambda_cut[1], weights))
 
@@ -394,6 +394,8 @@ def main():
     print('- Image cube memory required %.2f MiB'
           % (freqs_hz.shape[0] * im_size**2 * 8 / 1024**2))
 
+    sigma_im = np.zeros(freqs_hz.shape[0])
+    sigma_pq = np.zeros(freqs_hz.shape[0])
     for i, freq_hz in enumerate(freqs_hz):
         t0 = time.time()
         print('%3i - %8.2f MHz' % (i, freq_hz / 1e6), end=' ')
@@ -426,14 +428,18 @@ def main():
         if psf:
             amp = np.ones(uu_l.shape[0], dtype='c16')
         else:
-            sigma_pq, sigma_im = evaluate_effective_noise_rms(
+            sigma_pq_, si = evaluate_effective_noise_rms(
                 freq_hz, num_times=num_times, bw_hz=bw_hz,
                 num_stations=x.shape[0], obs_length_h=obs_length_h,
                 target_obs_length_h=target_obs_length_h, verbose=False)
-            print(': image noise ~ %6.1f uJy/beam' % (sigma_im * 1e6), end=' ')
-            sigma_pq /= 2**0.5
-            amp = (np.random.randn(uu_l.shape[0]) * sigma_pq +
-                   1.0j * np.random.randn(uu_l.shape[0]) * sigma_pq)
+            # sigma_pq is single pol and we have Stokes-I visibilities
+            sigma_pq_ /= 2**0.5
+            amp = (np.random.randn(uu_l.shape[0]) * sigma_pq_ +
+                   1.0j * np.random.randn(uu_l.shape[0]) * sigma_pq_)
+            sigma_pq[i] = sigma_pq_
+            sigma_im[i] = sigma_pq_ / (uu_l.shape[0] * 2)**0.5
+            print(': image noise ~ %6.1f uJy/beam' % (sigma_im[i] * 1e6),
+                  end=' ')
 
         # Make image
         image = imager.make_image(uu_l, vv_l, ww_l, amp, fov_deg, im_size,
@@ -445,6 +451,8 @@ def main():
         print(': %.2f s' % (time.time() - t0))
         sys.stdout.flush()
 
+    np.savetxt(join(results_dir, 'sigma_im.txt'), sigma_im)
+    np.savetxt(join(results_dir, 'sigma_pq.txt'), sigma_pq)
     write_fits_cube(cube, join(results_dir, cube_filename))
     write_fits_cube(np.diff(cube, axis=0),
                     join(results_dir, 'diff_' + cube_filename))
@@ -452,7 +460,7 @@ def main():
 
 if __name__ == '__main__':
     main()
-    # plot_sigma_im()
+    plot_sigma_im()
     # element_effective_area(50.0e6, debug_plot=True)
     # system_temp(50e6, debug_plot=True)
     # test_eval_noise()
