@@ -7,7 +7,7 @@ from math import cos, sin
 from astropy.io import fits
 from astropy import constants as const
 from os.path import join
-from math import sin, radians, degrees
+from math import sin, radians, degrees, log, pi
 import seaborn
 seaborn.set_style('ticks')
 
@@ -62,13 +62,27 @@ def gauss2d(xy, amp, x0, y0, a, b, c):
     return amp * np.exp(-inner)
 
 
+def gauss2d_1(xy, a, b, c):
+    x, y = xy
+    x0, y0 = 0, 0
+    inner = a * (x - x0)**2
+    inner -= 2 * b * (x - x0) * (y - y0)
+    inner += c * (y - y0)**2
+    return np.exp(-inner)
+
+
+def gauss2d_2(xy, sx, sy, theta):
+    a, b, c = gauss_param(theta, sx, sy)
+    return gauss2d_1(xy, a, b, c)
+
+
 def generate_example_data(num, params):
-    xy = np.random.random((2, num)) * 4 - 2
-    # c2 = 10
-    # x = np.arange(-c2, c2 + 1) * 0.2
-    # xg, yg = np.meshgrid(x, x)
-    # xy = np.vstack((xg.flatten(), yg.flatten()))
-    # x, y = xy
+    # xy = np.random.random((2, num)) * 4 - 2
+    c2 = 10
+    x = np.arange(-c2, c2 + 1) * 0.2
+    xg, yg = np.meshgrid(x, x)
+    xy = np.vstack((xg.flatten(), yg.flatten()))
+    x, y = xy
     zobs = gauss2d(xy, *params)
     return xy, zobs
 
@@ -94,8 +108,8 @@ def plot(xy, zobs, pred_params):
 
 
 def main2():
-    data = fits.getdata(join('results', 'psf_50-70MHz_100kHz_5h_60s_uniform',
-                             'psf_l_cut_10_230_uniform.fits'))
+    data = fits.getdata(join('results', 'noise_050.0-050.3MHz_100kHz_5h_60s_natural',
+                             'psf_no_l_cut_natural.fits'))
     data = data[0, :, :]
     c = data.shape[0]//2
     i0 = np.where(data[c, c:] < 0.0)[0][0]
@@ -128,7 +142,6 @@ def main2():
     hpbw_lm = sin(1 / 230)
     print(hpbw, hpbw_lm)
 
-
     xg, yg = lg, mg
     x, y = -l, l
     xy = np.vstack((xg.flatten(), yg.flatten()))
@@ -155,7 +168,7 @@ def main2():
     # axis1
     im = ax1.imshow(data2, interpolation='nearest', origin='lower',
                     extent=extent2, alpha=1.0, cmap='inferno',
-                    vmin=-0.1, vmax=1.0)
+                    vmin = -0.05, vmax = 0.6)
     c = plt.Circle((0, 0), hpbw_lm / 2, fill=False, color='w', lw=2.0)
     ax1.add_artist(c)
     cs = ax1.contour(xg, yg, data2, [0.5], colors='c', lw=2.0)
@@ -164,7 +177,7 @@ def main2():
     # axis2
     im = ax2.imshow(zpred.reshape(size2, size2), extent=extent2,
                     interpolation='nearest', origin='lower',
-                    alpha=1.0, cmap='inferno', vmin=-0.1, vmax=1.0)
+                    alpha=1.0, cmap='inferno', vmin=-0.05, vmax=0.6)
     cs = ax2.contour(xg, yg, zpred.reshape(size2, size2), [0.5],
                      colors='c', lw=2.0)
     ax2.clabel(cs, inline=1, fontsize=10)
@@ -181,6 +194,161 @@ def main2():
     plt.show()
 
 
+def main3():
+    cube = fits.getdata(
+        join('results', 'noise_050.0-070.0MHz_100kHz_5h_60s_uniform',
+             'psf_l_cut_10_230_uniform.fits'))
+    # cube = fits.getdata(
+    #     join('results', 'noise_050.0-070.0MHz_100kHz_5h_60s_natural',
+    #          'psf_l_cut_10_230_natural.fits'))
+
+    # TODO(BM) get frequency info from FITS header.
+    freq = 50e6 + (np.arange(200) * 100e3 + 50e3)
+
+    # Get lm cell size for the entire image
+    # TODO(BM) get from FITS header
+    fov = 10.0  # degrees
+    size = cube.shape[1]
+    centre = size // 2
+    lm_max = sin(radians(fov) * 0.5)
+    lm_inc = (2 * lm_max) / size
+    # extent for the entire image
+    extent = np.array([centre + 0.5, -centre + 0.5,
+                       -centre - 0.5, centre - 0.5])
+    extent *= lm_inc
+    num_channels = cube.shape[0]
+
+    # TODO(BM) get from fits header
+    hpbw = degrees(1 / 230)
+    hpbw_lm = sin(1 / 230)
+    print(hpbw, hpbw_lm)
+
+    plot_1d = True
+    plot_2d = False
+
+    area = np.zeros(num_channels)
+    sigma_x_lm = np.zeros(num_channels)
+    sigma_y_lm = np.zeros(num_channels)
+    theta_deg = np.zeros(num_channels)
+    fit_rms = np.zeros(num_channels)
+    volume = np.zeros(num_channels)
+
+    for i in range(1):
+        # Image plane
+        image = cube[i, :, :]
+
+        # Crop to the first null
+        c = image.shape[0] // 2
+        i0 = np.where(image[c, c:] < 0.0)[0][0]
+        i0 = int(i0 * 1.5)
+        image_crop = image[c - i0:c + i0 + 1, c - i0:c + i0 + 1]
+
+        # Get the extent for the inner cut region, 'data2'
+        size2 = image_crop.shape[0]
+        centre2 = size2 // 2
+        l = np.arange(-centre2, centre2 + 1) * lm_inc
+        lg, mg = np.meshgrid(-l, l)
+        extent2 = np.array([centre2 + 0.5, -centre2 - 0.5,
+                            -centre2 - 0.5, centre2 + 0.5])
+        extent2 *= lm_inc
+
+        xg, yg = lg, mg
+        xy = np.vstack((xg.flatten(), yg.flatten()))
+        x, y, = xy
+
+        sigma_guess_lm = hpbw_lm / (2*(2*log(2))**0.5)
+        guess = [sigma_guess_lm, sigma_guess_lm, 0.0]
+        pred_params, uncert_cov = opt.curve_fit(gauss2d_2, xy,
+                                                image_crop.flatten(),
+                                                p0=guess)
+        zpred = gauss2d_2(xy, *pred_params)
+        np.set_printoptions(precision=5)
+
+        sigma_x_lm[i] = pred_params[0]
+        sigma_y_lm[i] = pred_params[1]
+        sigma_x_asec = sin(sigma_x_lm[i]) * 3600.0
+        sigma_y_asec = sin(sigma_y_lm[i]) * 3600.0
+        theta_deg[i] = pred_params[2]
+        area[i] = pi * sigma_x_asec * sigma_y_asec
+        volume[i] = 2 * pi * sigma_x_asec * sigma_y_asec
+        fit_rms[i] = np.sqrt(np.mean((image_crop.flatten() - zpred) ** 2))
+        print('guess  : sx:%.2e, sy:%.2e, theta=%.1f' % tuple(guess))
+        print('fitted : sx:%.2e, sy:%.2e, theta=%.1f' % tuple(pred_params))
+        print('Residual, RMS(obs - pred):', fit_rms[i])
+        print('beam area: %f' % volume[i])
+
+        vmin_ = -0.1
+        vmax_ = 1.0
+        if plot_2d:
+            fig, (ax1, ax2) = plt.subplots(figsize=(10, 6), nrows=1, ncols=2)
+            # axis1
+            im = ax1.imshow(image_crop, interpolation='nearest', origin='lower',
+                            extent=extent2, alpha=1.0, cmap='inferno',
+                            vmin=vmin_, vmax=vmax_)
+            c = plt.Circle((0, 0), hpbw_lm / 2, fill=False, color='w', lw=2.0)
+            ax1.add_artist(c)
+            cs = ax1.contour(xg, yg, image_crop, [0.5], colors='c', lw=2.0)
+            ax1.clabel(cs, inline=1, fontsize=10)
+            ax1.set_title('psf')
+            # axis2
+            im = ax2.imshow(zpred.reshape(size2, size2), extent=extent2,
+                            interpolation='nearest', origin='lower',
+                            alpha=1.0, cmap='inferno', vmin=vmin_, vmax=vmax_)
+            cs = ax2.contour(xg, yg, zpred.reshape(size2, size2), [0.5],
+                             colors='c', lw=2.0)
+            ax2.clabel(cs, inline=1, fontsize=10)
+            c = plt.Circle((0, 0), hpbw_lm / 2, fill=False, color='w', lw=2.0)
+            ax2.add_artist(c)
+            ax2.set_xlim(extent2[0], extent2[1])
+            ax2.set_ylim(extent2[2], extent2[3])
+            ax2.set_aspect('equal')
+            ax2.set_title('gaussian fit')
+            fig.subplots_adjust(right=0.8)
+            cbar_ax = fig.add_axes([0.85, 0.2, 0.03, 0.6])
+            fig.colorbar(im, cax=cbar_ax)
+            plt.show()
+
+        if plot_1d:
+            # Plot x and y 1d cuts
+            fig, (ax1, ax2) = plt.subplots(figsize=(10, 6), nrows=1, ncols=2)
+            # axis1 - x cut
+            ax1.plot(-l, image_crop[centre2, :], label='psf', c='b')
+            ax1.plot([hpbw_lm/2, hpbw_lm/2], [vmin_, vmax_], c='k',
+                     label='guess fhwm')
+            ax1.plot([-hpbw_lm / 2, -hpbw_lm / 2], [vmin_, vmax_], c='k')
+            ax1.plot([-(2*log(2))**0.5*sigma_x_lm[i],
+                      -(2*log(2))**0.5*sigma_x_lm[i]],
+                     [vmin_, vmax_], '--', c='g', label='fit fwhm')
+            ax1.plot([(2 * log(2)) ** 0.5 * sigma_x_lm[i],
+                      (2 * log(2)) ** 0.5 * sigma_x_lm[i]],
+                     [vmin_, vmax_], '--', c='g')
+            ax1.plot(-l, zpred.reshape(size2, size2)[centre2, :],
+                     label='gauss fit', c='r')
+            ax1.plot(ax1.get_xlim(), [0.5, 0.5], '--', c='0.5')
+            ax1.set_title('x cut - %.3f MHz' % (freq[i]/1e6))
+            ax1.set_xlim(-l[0], -l[-1])
+            ax1.legend()
+            # axis2 - y cut
+            ax2.plot(l, image_crop[:, centre2], label='psf', c='b')
+            ax2.plot([hpbw_lm/2, hpbw_lm/2], [vmin_, vmax_], c='k',
+                     label='guess fwhm')
+            ax2.plot([-hpbw_lm / 2, -hpbw_lm / 2], [vmin_, vmax_], c='k')
+            ax2.plot(l, zpred.reshape(size2, size2)[:, centre2],
+                     label='gauss fit', c='r')
+            ax2.plot([-(2 * log(2)) ** 0.5 * sigma_y_lm[i],
+                      -(2 * log(2)) ** 0.5 * sigma_y_lm[i]],
+                     [vmin_, vmax_], '--', c='g', label='fit fwhm')
+            ax2.plot([(2 * log(2)) ** 0.5 * sigma_y_lm[i],
+                      (2 * log(2)) ** 0.5 * sigma_y_lm[i]],
+                     [vmin_, vmax_], '--', c='g')
+            ax2.plot(ax2.get_xlim(), [0.5, 0.5], '--', c='0.5')
+            ax2.set_title('y cut - %.3f MHz' % (freq[i] / 1e6))
+            ax2.set_xlim(l[0], l[-1])
+            ax2.legend()
+            plt.show()
+
+
 if __name__ == '__main__':
     # main()
-    main2()
+    # main2()
+    main3()

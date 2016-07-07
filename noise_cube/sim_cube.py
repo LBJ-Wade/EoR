@@ -15,6 +15,7 @@ import time
 import sys
 import shutil
 from astropy.io import fits
+from math import sin, degrees, radians
 seaborn.set_style('ticks')
 
 
@@ -318,12 +319,63 @@ def test_eval_noise():
                                  num_times=72, verbose=True)
 
 
-def write_fits_cube(cube, filename):
+def write_fits_cube(cube, filename, ra, dec, mjd_start, freq_start, freq_inc,
+                    fov, lambda_cut, weights, algorithm):
     # TODO(BM) convert units jy/beam -> K
     # TODO(BM) add fits header, WCS etc.
     # TODO(BM) write out one plane at a time? http://goo.gl/owain9
     t0 = time.time()
     hdu = fits.PrimaryHDU(cube)
+
+    size = cube.shape[-1]
+    header = hdu.header
+    lm_max = sin(radians(fov) * 0.5)
+    lm_inc = (lm_max * 2) / size
+    cdelt = degrees(sin(lm_inc))
+    crpix = size / 2 + 1
+
+    time_utc = time.gmtime()
+    header.set('DATE-OBS', '%04i-%02i-%02i' %
+               (time_utc.tm_year, time_utc.tm_mon, time_utc.tm_mday))
+
+    header.set('OBJECT', 'simulation of random noise')
+    header.set('TELESCOP', 'SKA1 low v5')
+    header.set('BUNIT', 'Jy/beam')
+    header.set('OBSRA', ra, 'RA')
+    header.set('OBSDEC', dec, 'DEC')
+    header.set('MJD-OBS', mjd_start, 'Start of observation')
+
+    # Image axes
+    header.set('CTYPE1', 'RA--SIN', 'Right Ascension')
+    header.set('CUNIT1', 'deg')
+    header.set('CRVAL1', ra, 'coordinate value at ref point')
+    header.set('CRPIX1', crpix, 'pixel coordinate of the reference point')
+    header.set('CDELT1', -cdelt, 'coordinate increment')
+
+    header.set('CTYPE2', 'DEC--SIN', 'Declination')
+    header.set('CUNIT2', 'deg')
+    header.set('CRVAL2', dec, 'coordinate value at ref point')
+    header.set('CRPIX2', crpix, 'pixel coordinate of the reference point')
+    header.set('CDELT2', cdelt, 'coordinate increment')
+
+    # Frequency axis
+    header.set('CTYPE3', 'FREQ', 'Frequency')
+    header.set('CUNIT3', 'Hz')
+    header.set('CRVAL3', freq_start + freq_inc /2,
+               'coordinate value at ref point')
+    header.set('CRPIX3', 1, 'pixel coordinate of the reference point')
+    header.set('CDELT3', freq_inc, 'coordinate increment')
+
+    header.set('comment', 'Simulation of random noise for testing the EoR '
+                          'pipeline')
+    header.set('comment', 'Generated on %s' % time.asctime())
+    header.set('comment', 'FOV = %f deg.' % fov)
+    header.set('comment', 'weights = %s' % weights)
+    header.set('comment', 'algorithm = %s' % algorithm)
+    if lambda_cut:
+        header.set('comment', 'lambda cut inner = %i' % lambda_cut[0])
+        header.set('comment', 'lambda cut outer = %i' % lambda_cut[1])
+
     hdu_list = fits.HDUList([hdu])
     hdu_list.writeto(filename, clobber=True)
     print('write fits: %.2f s' % (time.time() - t0))
@@ -338,16 +390,19 @@ def main():
 
     # TODO(BM) compare t_sys with GSM value?
     # TODO(BM) Define observation track ra, dec, mjd / ha range.
-    # TODO(BM) Image size? use hpbw at highest frequency?
+
     # hpbw = np.degrees(wavelength / station_d)
     # size = (r_cut * 2) / station_d
-    psf = False
-    freqs_hz = 50e6 + (np.arange(200) * 100e3 + 50e3)
+    freq_start = 200e6
+    freq_inc = 100e3
+    num_channels = 200
+    freqs_hz = freq_start + (np.arange(num_channels) * freq_inc + freq_inc/2)
     lon, lat = 116.63128900, -26.69702400
     ra, dec = 68.698903779331502, -26.568851215532160
     mjd_mid = 57443.4375000000
     station_d = 35.0
     obs_length_h = 5.0
+    mjd_start = mjd_mid - ((obs_length_h / 2) / 24)
     target_obs_length_h = 1000.0
     t_acc = 60.0
     bw_hz = 100e3
@@ -357,22 +412,31 @@ def main():
     inner = int(math.ceil((uv_range_m[0] * freqs_hz.max()) / const.c.value))
     outer = int(math.ceil((uv_range_m[1] * freqs_hz.min()) / const.c.value))
     print(inner, outer)
-    lambda_cut = [10, 230]  # 50-70 MHz
-    # lambda_cut = [20, 550]  # 120-140 MHz
-    # lambda_cut = [30, 900]  # 200-220 MHz
     im_size = 1024
-    fov_deg = 10.0   # 50 MHz
-    # fov_deg = 4.2  # 120 MHz
-    # fov_deg = 2.5  # 200 MHz
-    weights = 'natural'
-    algorithm = 'W-projection'
-    # algorithm = 'FFT'
+    if freq_start == 50e6:
+        lambda_cut = [10, 230]  # 50-70 MHz
+        fov_deg = 10.0  # 50 MHz
+    elif freq_start == 120e6:
+        lambda_cut = [20, 550]  # 120-140 MHz
+        fov_deg = 4.2  # 120 MHz
+    elif freq_start == 200e6:
+        lambda_cut = [30, 900]  # 200-220 MHz
+        fov_deg = 2.5  # 200 MHz
+    else:
+        raise RuntimeError('Invalid start frequency')
+
+    weights = 'uniform'
+    # algorithm = 'W-projection'
+    algorithm = 'FFT'
     plot_uv_lambda_cut = False
 
     # Outputs
-    results_dir = join('results', 'noise_50-70MHz_100kHz_5h_60s_%s' % weights)
-    cube_filename = ('noise_l_cut_%i_%i_%s.fits' %
-                     (lambda_cut[0], lambda_cut[1], weights))
+    root_name = 'noise'
+    results_dir = join('results', '%s_%05.1f-%05.1fMHz_%ikHz_%ih_%is_%s' %
+                       (root_name, freq_start/1e6,
+                        (freq_start + freq_inc * num_channels)/1e6,
+                        int(freq_inc/1e3), int(obs_length_h),
+                        int(t_acc), weights))
 
     # Create results directory (remove existing)
     if os.path.isdir(results_dir):
@@ -390,9 +454,10 @@ def main():
 
     # Create imager object and allocate empty image cube
     imager = oskar.Imager('single')
-    cube = np.empty((freqs_hz.shape[0], im_size, im_size))
+    image_cube = np.empty((freqs_hz.shape[0], im_size, im_size))
+    psf_cube = np.empty((freqs_hz.shape[0], im_size, im_size))
     print('- Image cube memory required %.2f MiB'
-          % (freqs_hz.shape[0] * im_size**2 * 8 / 1024**2))
+          % ((num_channels * im_size**2 * 8 * 2) / 1024**2))
 
     sigma_im = np.zeros(freqs_hz.shape[0])
     sigma_pq = np.zeros(freqs_hz.shape[0])
@@ -425,42 +490,53 @@ def main():
                                r_lim=lambda_cut[1]*1.1, units='wavelengths')
 
         # Generate visibility amplitudes
-        if psf:
-            amp = np.ones(uu_l.shape[0], dtype='c16')
-        else:
-            sigma_pq_, si = evaluate_effective_noise_rms(
-                freq_hz, num_times=num_times, bw_hz=bw_hz,
-                num_stations=x.shape[0], obs_length_h=obs_length_h,
-                target_obs_length_h=target_obs_length_h, verbose=False)
-            # sigma_pq is single pol and we have Stokes-I visibilities
-            sigma_pq_ /= 2**0.5
-            amp = (np.random.randn(uu_l.shape[0]) * sigma_pq_ +
-                   1.0j * np.random.randn(uu_l.shape[0]) * sigma_pq_)
-            sigma_pq[i] = sigma_pq_
-            sigma_im[i] = sigma_pq_ / (uu_l.shape[0] * 2)**0.5
-            print(': image noise ~ %6.1f uJy/beam' % (sigma_im[i] * 1e6),
-                  end=' ')
+        sigma_pq_, si = evaluate_effective_noise_rms(
+            freq_hz, num_times=num_times, bw_hz=bw_hz,
+            num_stations=x.shape[0], obs_length_h=obs_length_h,
+            target_obs_length_h=target_obs_length_h, verbose=False)
+        # sigma_pq is single pol and we have Stokes-I visibilities
+        sigma_pq_ /= 2**0.5
+        amp = (np.random.randn(uu_l.shape[0]) * sigma_pq_ +
+               1.0j * np.random.randn(uu_l.shape[0]) * sigma_pq_)
+        sigma_pq[i] = sigma_pq_
+        sigma_im[i] = sigma_pq_ / (uu_l.shape[0] * 2)**0.5
+        print(': image noise ~ %6.1f uJy/beam' % (sigma_im[i] * 1e6),
+              end=' ')
+
+        # TODO(BM) save visibility amplitudes out with np.save() to test
+        # making power spectrum from the visibilities ...
 
         # Make image
         image = imager.make_image(uu_l, vv_l, ww_l, amp, fov_deg, im_size,
                                   weighting=weights, algorithm=algorithm)
-        cube[i, :, :] = image
+        image_cube[i, :, :] = image
+        print('(%6.1f)' % (np.std(image) * 1e6), end=' ')
 
-        if not psf:
-            print('(%6.1f)' % (np.std(image) * 1e6), end=' ')
+        # Make the PSF
+        amp = np.ones(uu_l.shape[0], dtype='c16')
+        image = imager.make_image(uu_l, vv_l, ww_l, amp, fov_deg, im_size,
+                                  weighting=weights, algorithm=algorithm)
+        psf_cube[i, :, :] = image
+
         print(': %.2f s' % (time.time() - t0))
         sys.stdout.flush()
 
+    if lambda_cut:
+        suffix = 'l_cut_%i_%i_%s.fits' % (lambda_cut[0], lambda_cut[1], weights)
+    else:
+        suffix = 'no_l_cut_%s.fits' % weights
     np.savetxt(join(results_dir, 'sigma_im.txt'), sigma_im)
     np.savetxt(join(results_dir, 'sigma_pq.txt'), sigma_pq)
-    write_fits_cube(cube, join(results_dir, cube_filename))
-    write_fits_cube(np.diff(cube, axis=0),
-                    join(results_dir, 'diff_' + cube_filename))
-
+    write_fits_cube(image_cube, join(results_dir, 'noise_' + suffix), ra, dec,
+                    mjd_start, freq_start, freq_inc,
+                    fov_deg, lambda_cut, weights, algorithm)
+    write_fits_cube(psf_cube, join(results_dir, 'psf_' + suffix), ra, dec,
+                    mjd_start, freq_start, freq_inc,
+                    fov_deg, lambda_cut, weights, algorithm)
 
 if __name__ == '__main__':
     main()
-    plot_sigma_im()
+    # plot_sigma_im()
     # element_effective_area(50.0e6, debug_plot=True)
     # system_temp(50e6, debug_plot=True)
     # test_eval_noise()
