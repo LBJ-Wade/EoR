@@ -8,6 +8,7 @@ from astropy import constants as const
 import numpy as np
 import math
 from scipy.interpolate import interp1d
+import matplotlib
 import matplotlib.pyplot as plt
 import seaborn
 from pyuvwsim import convert_enu_to_ecef, evaluate_baseline_uvw
@@ -15,7 +16,7 @@ import time
 import sys
 import shutil
 from astropy.io import fits
-from math import sin, degrees, radians
+from math import sin, degrees, radians, asin
 seaborn.set_style('ticks')
 
 
@@ -111,36 +112,104 @@ def system_temp(freq_hz, debug_plot=False):
 
 
 def plot_sigma_im():
-    eta = 1.0
-    bw_hz = 100e3
-    num_antennas = 256
-    t_acc = 5.0
-    obs_length_h = 1000.0
-    num_times = (obs_length_h * 3600.0) / t_acc
-    num_stations = 200
-    num_baselines = (num_stations * (num_stations - 1)) // 2
-    n = 2 * num_times * num_baselines
     freqs = np.linspace(50.0e6, 350.0e6, 2**16 // 128)
-    sigma_pq = np.zeros_like(freqs)
-    sigma_im = np.zeros_like(freqs)
-    for i, freq in enumerate(freqs):
-        t_sys = system_temp(freq)
-        a_eff = element_effective_area(freq) * num_antennas
-        sefd = (2.0 * const.k_B.value * t_sys * eta) / a_eff
-        sefd *= 1e26  # Convert to Jy
-        sigma_pq[i] = sefd / (2.0 * bw_hz * t_acc) ** 0.5
-        sigma_im[i] = (sigma_pq[i] / (2 * n)**0.5) * 1e6
-    print(sigma_im.min(), sigma_im.max())
-    fig = plt.figure(figsize=(8, 8))
-    ax = fig.add_subplot(111)
-    ax.plot(freqs, sigma_im)
-    ax.set_ylabel('Expected image RMS ($\mu$Jy/beam)')
-    ax.set_xlabel('Frequency (Hz)')
-    ax.grid(True)
+    lon, lat = 116.63128900, -26.69702400
+    eta = 1.0
+    lon, lat = 116.63128900, -26.69702400
+    ra, dec = 68.698903779331502, -26.568851215532160
+    mjd_mid = 57443.4375000000
+    station_d = 35.0
+    obs_length_h = 5.0
+    mjd_start = mjd_mid - ((obs_length_h / 2) / 24)
+    target_obs_length_h = 1000.0
+    t_acc = 60.0
+    bw_hz = 100e3
+
+    sigma_im = np.zeros((3, freqs.shape[0]))
+    sigma_im_2 = np.zeros((3, freqs.shape[0]))
+    num_ant = np.zeros(3)
+
+    for j, freq_start in enumerate([50e6, 120e6, 200e6]):
+        if freq_start == 50e6:
+            lambda_cut = [10, 230]  # 50-70 MHz
+        elif freq_start == 120e6:
+            lambda_cut = [20, 550]  # 120-140 MHz
+        elif freq_start == 200e6:
+            lambda_cut = [30, 900]  # 200-220 MHz
+        else:
+            raise RuntimeError('Invalid start frequency')
+        station_d = 35
+
+        coord_file = join('results', 'uvw_%05.1fMHz.npz' % (freq_start/1e6))
+        if not os.path.isfile(coord_file):
+            r_cut = lambda_cut[1] * (const.c.value / freqs.min()) \
+                if lambda_cut else 1.5e3
+            t0 = time.time()
+            x, y, z = load_telescope(r_cut, station_d, lon, lat)
+            uu, vv, ww, num_times = gen_uvw_m(x, y, z, obs_length_h, mjd_mid, t_acc,
+                                              ra, dec)
+            print('Generated coords in %.1f s' % (time.time() - t0))
+            t0 = time.time()
+            np.savez_compressed(coord_file, uu=uu, vv=vv, ww=ww, x=x, y=y, z=z)
+            print('Saved results in %.1f s' % (time.time() - t0))
+        else:
+            t0 = time.time()
+            data = np.load(coord_file)
+            x, y, z = data['x'], data['y'], data['z']
+            uu, vv, ww = data['uu'], data['vv'], data['ww']
+            num_ant_ = x.shape[0]
+            num_baselines_ = num_ant_ * (num_ant_ - 1) // 2
+            print('num ant', num_ant)
+            print('num baselines', num_baselines_)
+            num_times = uu.shape[0] // num_baselines_
+            print('num_times', num_times)
+            print('Loaded data in %.1f s' % (time.time() - t0))
+
+        num_ant[j] = x.shape[0]
+        for i, freq in enumerate(freqs):
+            t0 = time.time()
+            wavelength = const.c.value / freq
+            uu_l = np.copy(uu) / wavelength
+            vv_l = np.copy(vv) / wavelength
+            # ww_l = np.copy(ww) / wavelength
+            r_uv = (uu_l**2 + vv_l**2)**0.5
+            cut_idx = np.where(np.logical_and(r_uv >= lambda_cut[0],
+                                              r_uv <= lambda_cut[1]))
+            # uu_l, vv_l, ww_l = uu_l[cut_idx], vv_l[cut_idx], ww_l[cut_idx]
+
+            # Generate visibility amplitudes
+            s_pq, s_im = evaluate_effective_noise_rms(
+                freq, num_times=num_times, bw_hz=bw_hz,
+                num_stations=x.shape[0], obs_length_h=obs_length_h,
+                target_obs_length_h=target_obs_length_h, verbose=False)
+            s_pq /= 2**0.5
+            sigma_im[j, i] = s_im
+            sigma_im_2[j, i] = s_pq / (cut_idx[0].shape[0] * 2)**0.5
+            print(i, cut_idx[0].shape[0], sigma_im[j, i] * 1e6,
+                  sigma_im_2[j, i] * 1e6, (time.time() - t0))
+
+    fig, ax = plt.subplots(figsize=(8, 8), nrows=1, ncols=1)
+    ax.plot(freqs / 1e6, sigma_im[0, :] * 1e6, 'k--', lw=1.5, label='50MHz (simple scaling %i antennas)' % num_ant[0])
+    ax.plot(freqs / 1e6, sigma_im[1, :] * 1e6, 'g--', lw=1.5, label='120MHz (simple scaling %i antennas)' % num_ant[1])
+    ax.plot(freqs / 1e6, sigma_im[2, :] * 1e6, 'b--', lw=1.5, label='200MHz (simple scaling %i antennas)' % num_ant[2])
+    ax.plot(freqs / 1e6, sigma_im_2[0, :] * 1e6, 'k-', lw=1.5, label='50MHz (lambda cut)')
+    ax.plot(freqs / 1e6, sigma_im_2[1, :] * 1e6, 'g-', lw=1.5, label='120MHz (lambda cut)')
+    ax.plot(freqs / 1e6, sigma_im_2[2, :] * 1e6, 'b-', lw=1.5, label='200MHz (lambda cut)')
+    ax.set_ylabel('Image noise RMS ($\mu$Jy/beam)')
+    ax.set_xlabel('Frequency (MHz)')
     ax.set_xscale('log')
     ax.set_yscale('log')
-    ax.set_ylim(sigma_im.min()*0.9, sigma_im.max()*1.1)
-    ax.set_xlim(freqs[0], freqs[-1])
+    ax.axvspan(50, 70, alpha=0.3, color='red')
+    ax.axvspan(120, 140, alpha=0.3, color='red')
+    ax.axvspan(200, 220, alpha=0.3, color='red')
+    ax.set_xticks([50, 70, 120, 140, 200, 220, 350])
+    ax.grid(True)
+    ax.get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
+    ax.get_yaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
+    ax.set_ylim(sigma_im.min()*0.9*1e6, sigma_im.max()*1.1*1e6)
+    ax.set_xlim(freqs[0] / 1e6, freqs[-1] / 1e6)
+    ax.legend(fontsize='medium', frameon=True)
+    fig.savefig(join('results', 'noise_bands_2.png'))
     plt.show()
 
 
@@ -331,7 +400,7 @@ def write_fits_cube(cube, filename, ra, dec, mjd_start, freq_start, freq_inc,
     header = hdu.header
     lm_max = sin(radians(fov) * 0.5)
     lm_inc = (lm_max * 2) / size
-    cdelt = degrees(sin(lm_inc))
+    cdelt = degrees(asin(lm_inc))
     crpix = size / 2 + 1
 
     time_utc = time.gmtime()
@@ -535,8 +604,8 @@ def main():
                     fov_deg, lambda_cut, weights, algorithm)
 
 if __name__ == '__main__':
-    main()
-    # plot_sigma_im()
+    # main()
+    plot_sigma_im()
     # element_effective_area(50.0e6, debug_plot=True)
     # system_temp(50e6, debug_plot=True)
     # test_eval_noise()

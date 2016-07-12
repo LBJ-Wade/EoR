@@ -7,7 +7,8 @@ from math import cos, sin
 from astropy.io import fits
 from astropy import constants as const
 from os.path import join
-from math import sin, radians, degrees, log, pi
+import os
+from math import sin, radians, degrees, log, pi, asin
 import seaborn
 seaborn.set_style('ticks')
 
@@ -195,15 +196,37 @@ def main2():
 
 
 def main3():
-    cube = fits.getdata(
-        join('results', 'noise_050.0-070.0MHz_100kHz_5h_60s_uniform',
-             'psf_l_cut_10_230_uniform.fits'))
-    # cube = fits.getdata(
-    #     join('results', 'noise_050.0-070.0MHz_100kHz_5h_60s_natural',
-    #          'psf_l_cut_10_230_natural.fits'))
+    # TODO(BM) take the log and fit a parabola instead of the gaussian fit used
+    # here https://en.wikipedia.org/wiki/Gaussian_function
+    # (see profile estimation)
+
+    # weight = 'uniform'
+    weight = 'natural'
+    freq0 = 200e6
+
+    freq1 = freq0 + 20e6
+    if freq0 == 50e6:
+        b_min_lambda = 10
+        b_max_lambda = 230
+    elif freq0 == 120e6:
+        b_min_lambda = 20
+        b_max_lambda = 550
+    elif freq0 == 200e6:
+        b_min_lambda = 30
+        b_max_lambda = 900
+    else:
+        raise RuntimeError('Invalid start frequency')
+    cube_file = join('results',
+                     'noise_%05.1f-%05.1fMHz_100kHz_5h_60s_%s' %
+                     (freq0/1e6, freq1/1e6, weight),
+                     'psf_l_cut_%i_%i_%s.fits' %
+                     (b_min_lambda, b_max_lambda, weight))
+    cube = fits.getdata(cube_file)
+
+    out_dir = os.path.dirname(cube_file)
 
     # TODO(BM) get frequency info from FITS header.
-    freq = 50e6 + (np.arange(200) * 100e3 + 50e3)
+    freq = freq0 + (np.arange(200) * 100e3 + 50e3)
 
     # Get lm cell size for the entire image
     # TODO(BM) get from FITS header
@@ -219,21 +242,25 @@ def main3():
     num_channels = cube.shape[0]
 
     # TODO(BM) get from fits header
-    hpbw = degrees(1 / 230)
-    hpbw_lm = sin(1 / 230)
-    print(hpbw, hpbw_lm)
+    hpbw = degrees(1 / b_max_lambda)
+    hpbw_lm = sin(1 / b_max_lambda)
+    sigma = hpbw / (2*(2*log(2))**0.5)
+    sigma_lm = hpbw_lm / (2*(2*log(2))**0.5)
 
     plot_1d = True
     plot_2d = False
+    plot_dir = join(out_dir, 'psf_fit')
+    if not os.path.isdir(plot_dir):
+        os.makedirs(plot_dir)
 
     area = np.zeros(num_channels)
-    sigma_x_lm = np.zeros(num_channels)
-    sigma_y_lm = np.zeros(num_channels)
+    sigma_x_arcmin = np.zeros(num_channels)
+    sigma_y_arcmin = np.zeros(num_channels)
     theta_deg = np.zeros(num_channels)
     fit_rms = np.zeros(num_channels)
     volume = np.zeros(num_channels)
 
-    for i in range(1):
+    for i in range(num_channels):
         # Image plane
         image = cube[i, :, :]
 
@@ -264,18 +291,25 @@ def main3():
         zpred = gauss2d_2(xy, *pred_params)
         np.set_printoptions(precision=5)
 
-        sigma_x_lm[i] = pred_params[0]
-        sigma_y_lm[i] = pred_params[1]
-        sigma_x_asec = sin(sigma_x_lm[i]) * 3600.0
-        sigma_y_asec = sin(sigma_y_lm[i]) * 3600.0
+        sigma_x_lm = pred_params[0]
+        sigma_y_lm = pred_params[1]
+        sigma_x_arcmin[i] = degrees(asin(sigma_x_lm)) * 60.0
+        sigma_y_arcmin[i] = degrees(asin(sigma_y_lm)) * 60.0
         theta_deg[i] = pred_params[2]
-        area[i] = pi * sigma_x_asec * sigma_y_asec
-        volume[i] = 2 * pi * sigma_x_asec * sigma_y_asec
+        area[i] = 2 * pi * sigma_x_arcmin[i] * sigma_y_arcmin[i]
         fit_rms[i] = np.sqrt(np.mean((image_crop.flatten() - zpred) ** 2))
+        print('*' * 50)
+        print('%i %.2f MHz' % (i, freq[i]/1e6))
         print('guess  : sx:%.2e, sy:%.2e, theta=%.1f' % tuple(guess))
         print('fitted : sx:%.2e, sy:%.2e, theta=%.1f' % tuple(pred_params))
+        print('guess  : %f' % (degrees(asin(sigma_guess_lm)) * 60.0))
+        print('sigma  : %f, %f' % (sigma_x_arcmin[i], sigma_y_arcmin[i]))
+        # Cramér–Rao bound?
+        # see section on Gaussian profile estimation @ https://goo.gl/X7CBDQ
         print('Residual, RMS(obs - pred):', fit_rms[i])
-        print('beam area: %f' % volume[i])
+        print('beam area: %f' % area[i])
+        print('guess area: %f ' %
+              (2*pi*(degrees(asin(sigma_guess_lm)) * 60.0)**2))
 
         vmin_ = -0.1
         vmax_ = 1.0
@@ -306,47 +340,57 @@ def main3():
             fig.subplots_adjust(right=0.8)
             cbar_ax = fig.add_axes([0.85, 0.2, 0.03, 0.6])
             fig.colorbar(im, cax=cbar_ax)
-            plt.show()
+            fig.savefig(join(plot_dir, '2d_fit_%03i.png' % i))
+            plt.close(fig)
 
         if plot_1d:
             # Plot x and y 1d cuts
             fig, (ax1, ax2) = plt.subplots(figsize=(10, 6), nrows=1, ncols=2)
             # axis1 - x cut
             ax1.plot(-l, image_crop[centre2, :], label='psf', c='b')
-            ax1.plot([hpbw_lm/2, hpbw_lm/2], [vmin_, vmax_], c='k',
+            ax1.plot([hpbw_lm / 2, hpbw_lm / 2], [vmin_, vmax_], c='k',
                      label='guess fhwm')
             ax1.plot([-hpbw_lm / 2, -hpbw_lm / 2], [vmin_, vmax_], c='k')
-            ax1.plot([-(2*log(2))**0.5*sigma_x_lm[i],
-                      -(2*log(2))**0.5*sigma_x_lm[i]],
+            ax1.plot([-(2 * log(2))**0.5 * sigma_x_lm,
+                      -(2 * log(2))**0.5 * sigma_x_lm],
                      [vmin_, vmax_], '--', c='g', label='fit fwhm')
-            ax1.plot([(2 * log(2)) ** 0.5 * sigma_x_lm[i],
-                      (2 * log(2)) ** 0.5 * sigma_x_lm[i]],
+            ax1.plot([(2 * log(2))**0.5 * sigma_x_lm,
+                      (2 * log(2))**0.5 * sigma_x_lm],
                      [vmin_, vmax_], '--', c='g')
             ax1.plot(-l, zpred.reshape(size2, size2)[centre2, :],
                      label='gauss fit', c='r')
             ax1.plot(ax1.get_xlim(), [0.5, 0.5], '--', c='0.5')
+            ax1.grid()
             ax1.set_title('x cut - %.3f MHz' % (freq[i]/1e6))
             ax1.set_xlim(-l[0], -l[-1])
             ax1.legend()
             # axis2 - y cut
             ax2.plot(l, image_crop[:, centre2], label='psf', c='b')
-            ax2.plot([hpbw_lm/2, hpbw_lm/2], [vmin_, vmax_], c='k',
+            ax2.plot([hpbw_lm / 2, hpbw_lm / 2], [vmin_, vmax_], c='k',
                      label='guess fwhm')
             ax2.plot([-hpbw_lm / 2, -hpbw_lm / 2], [vmin_, vmax_], c='k')
             ax2.plot(l, zpred.reshape(size2, size2)[:, centre2],
                      label='gauss fit', c='r')
-            ax2.plot([-(2 * log(2)) ** 0.5 * sigma_y_lm[i],
-                      -(2 * log(2)) ** 0.5 * sigma_y_lm[i]],
+            ax2.plot([-(2 * log(2))**0.5 * sigma_y_lm,
+                      -(2 * log(2))**0.5 * sigma_y_lm],
                      [vmin_, vmax_], '--', c='g', label='fit fwhm')
-            ax2.plot([(2 * log(2)) ** 0.5 * sigma_y_lm[i],
-                      (2 * log(2)) ** 0.5 * sigma_y_lm[i]],
+            ax2.plot([(2 * log(2))**0.5 * sigma_y_lm,
+                      (2 * log(2))**0.5 * sigma_y_lm],
                      [vmin_, vmax_], '--', c='g')
             ax2.plot(ax2.get_xlim(), [0.5, 0.5], '--', c='0.5')
             ax2.set_title('y cut - %.3f MHz' % (freq[i] / 1e6))
             ax2.set_xlim(l[0], l[-1])
             ax2.legend()
-            plt.show()
+            ax2.grid()
+            fig.savefig(join(plot_dir, '1d_fit_%03i.png' % i))
+            plt.close(fig)
 
+    psf_fit_data = np.vstack((sigma_x_arcmin, sigma_y_arcmin, theta_deg,
+                              fit_rms, area))
+    header_ = 'sigma_x (arcmin), sigma_y (arcmin), theta (deg), ' \
+              'fit rms, area (arcmin^2)'
+    np.savetxt(join(plot_dir, 'fit_data.txt'), np.transpose(psf_fit_data),
+               header=header_)
 
 if __name__ == '__main__':
     # main()
