@@ -604,8 +604,8 @@ def main():
                     fov_deg, lambda_cut, weights, algorithm)
 
 if __name__ == '__main__':
-    # main()
-    plot_sigma_im()
+    main()
+    # plot_sigma_im()
     # element_effective_area(50.0e6, debug_plot=True)
     # system_temp(50e6, debug_plot=True)
     # test_eval_noise()
