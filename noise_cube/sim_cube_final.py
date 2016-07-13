@@ -2,7 +2,6 @@
 
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
-
 from os.path import join
 import os
 import numpy as np
@@ -11,8 +10,6 @@ from math import ceil, floor, sin, cos, asin, degrees, radians, pi, log
 from scipy.interpolate import interp1d
 from scipy import optimize as opt
 import time
-import sys
-import shutil
 from math import sin, degrees, radians, asin
 from astropy import constants as const
 from astropy.io import fits
@@ -21,9 +18,8 @@ import ephem
 from pyuvwsim import convert_enu_to_ecef, evaluate_baseline_uvw
 import oskar
 import seaborn
-import matplotlib
 import matplotlib.pyplot as plt
-from progressbar import ProgressBar, Percentage, Bar, ETA
+from progressbar import ProgressBar, Percentage, Bar, ETA, Timer
 seaborn.set_style('ticks')
 
 
@@ -448,7 +444,8 @@ def eval_beam_area(psf_cube, l_cut_outer, fov_deg, freqs, start_freq,
     psf_fit_file = join(results_dir, 'psf_fit_%05.1fMHz_%s.npz' % (start_freq / 1e6, weights))
     np.savez_compressed(psf_fit_file, sigma_x_arcmin=sigma_x_arcmin,
                         sigma_y_arcmin=sigma_y_arcmin, theta_deg=theta_deg,
-                        area_arcmin2=area_arcmin2, fit_rms=fit_rms)
+                        area_arcmin2=area_arcmin2, fit_rms=fit_rms, freqs=freqs,
+                        start_freq=start_freq)
     return area_arcmin2
 
 
@@ -468,19 +465,20 @@ def main():
 
     # Observation settings
     az0, el0, date0 = 0.0, 90.0, '2016/2/25 10:30'
-    start_freqs = [50e6, 120e6, 220e6]
+    # start_freqs = [50e6, 120e6, 220e6]
+    start_freqs = [50e6]
     num_channels, freq_inc = 200, 100e3
     obs_length_h, target_obs_length_h = 5, 1000
     t_acc = 60.0
 
     # Image settings
     im_size = 512
-    # algorithm = 'FFT'
-    algorithm = 'w-projection'
+    algorithm = 'FFT'
+    # algorithm = 'w-projection'
     weights = 'uniform'
 
     # Results directory
-    results_dir = 'results_noise_cubes_%s_%s' % (weights, algorithm)
+    results_dir = 'results_noise_cubes_%s_%s' % (weights, algorithm.lower())
     # =========================================================================
 
     # Calculate observation parameters
@@ -554,7 +552,9 @@ def main():
             sigma_im = noise_data['sigma_im']
         else:
             sigma_pq, sigma_im = np.zeros(num_channels), np.zeros(num_channels)
-            pbar = ProgressBar(maxval=num_channels, widgets=[Bar(), Percentage(), ETA()])
+            pbar = ProgressBar(maxval=num_channels,
+                               widgets=[Bar(marker='='), Percentage(), ' ',
+                                        Timer(), ' ', ETA()])
             pbar.start()
             for j, freq in enumerate(freqs):
                 # Convert to wavelength and apply lambda cut
@@ -568,14 +568,14 @@ def main():
                 num_coords = uu_l.shape[0]
 
                 # Evaluate visibility noise
-                sigma_pq[i], _ = evaluate_effective_noise_rms(
+                sigma_pq[j], _ = evaluate_effective_noise_rms(
                     freq, num_times, freq_inc, eta, num_stations,
                     obs_length_h, target_obs_length_h)
-                sigma_pq[i] /= 2**0.5  # sigma_pq is single pol and we want Stokes-I
-                sigma_im[i] = sigma_pq[i] / num_coords**0.5
+                sigma_pq[j] /= 2**0.5  # sigma_pq is single pol and we want Stokes-I
+                sigma_im[j] = sigma_pq[j] / num_coords**0.5
 
                 # Make the noise image
-                amp = (randn(num_coords) + 1j * randn(num_coords)) * sigma_pq[i]
+                amp = (randn(num_coords) + 1j * randn(num_coords)) * sigma_pq[j]
                 noise_cube[j, :, :] = imager.make_image(uu_l, vv_l, ww_l, amp, fov_deg, im_size, weights, algorithm)
 
                 # Make the psf
@@ -613,10 +613,6 @@ def main():
                         bunit='K')
         print('- Time taken = %.2f s (convert to K)' % (time.time() - t0))
         print()
-
-        # TODO(BM) make noise rms plots
-
-
 
 
 if __name__ == '__main__':
