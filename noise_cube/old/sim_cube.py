@@ -184,7 +184,7 @@ def plot_sigma_im():
                 target_obs_length_h=target_obs_length_h, verbose=False)
             s_pq /= 2**0.5
             sigma_im[j, i] = s_im
-            sigma_im_2[j, i] = s_pq / (cut_idx[0].shape[0] * 2)**0.5
+            sigma_im_2[j, i] = s_pq / (cut_idx[0].shape[0])**0.5
             print(i, cut_idx[0].shape[0], sigma_im[j, i] * 1e6,
                   sigma_im_2[j, i] * 1e6, (time.time() - t0))
 
@@ -603,9 +603,10 @@ def main():
                     mjd_start, freq_start, freq_inc,
                     fov_deg, lambda_cut, weights, algorithm)
 
+
 if __name__ == '__main__':
-    main()
-    # plot_sigma_im()
+    # main()
+    plot_sigma_im()
     # element_effective_area(50.0e6, debug_plot=True)
     # system_temp(50e6, debug_plot=True)
     # test_eval_noise()
