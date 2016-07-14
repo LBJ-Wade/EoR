@@ -116,14 +116,14 @@ def system_temp(freq_hz, debug_plot=False):
 
 def evaluate_noise_rms(freq_hz, t_acc=5.0, bw_hz=100e3, eta=1.0,
                        num_antennas=256):
-    """Evaluate the Stokes-I RMS noise of a station, in Jy
+    """Evaluate the station Stokes-I RMS noise of a station, in Jy
 
     Args:
         freq_hz (float): Frequency in, Hz
         t_acc (float): Integration time, in seconds
         bw_hz (float): Bandwidth, in Hz
-        eta (float): Efficiency factor
-        num_antennas(int): number of antennas in a station.
+        eta (float): System efficiency factor
+        num_antennas(int): Number of antennas in a station.
 
     Returns:
         Noise RMS in Jy
@@ -133,35 +133,36 @@ def evaluate_noise_rms(freq_hz, t_acc=5.0, bw_hz=100e3, eta=1.0,
 
     # Single receiver polarisation SEFD
     sefd = (2.0 * const.k_B.value * t_sys * eta) / a_eff
-    sigma_pq = (sefd * 1e26) / (2.0 * bw_hz * t_acc) ** 0.5
+    sigma_pq = (sefd * 1e26) / (2.0 * bw_hz * t_acc)**0.5
+    # Stokes-I noise is from two receiver polarisations -> scale by 1 / sqrt(2)
     sigma_pq /= 2**0.5
     return sigma_pq
 
 
-def evaluate_effective_noise_rms(freq_hz, num_times=48, bw_hz=100e3,
-                                 eta=1.0, target_obs_length_h=1000.0,
-                                 num_antennas=256):
-    """Evaluate the stokes-I station RMS, in Jy for a target observation
-       length and number of time samples
+def evaluate_scaled_noise_rms(freq_hz, num_times, bw_hz=100e3, eta=1.0,
+                              obs_length_h=1000.0, num_antennas=256):
+    """Evaluate the station Stokes-I noise RMS, in Jy for the given observation
+       length sampled with the specified number of time samples.
 
     Args:
         freq_hz (float): Frequency in, Hz
         num_times (int): Number of time samples
         bw_hz (float): Bandwidth, in Hz
-        eta (float): Efficiency factor
-        target_obs_length_h (float): Target observation length, in hours
-        num_antennas(int): number of antennas in a station.
+        eta (float): System efficiency factor
+        obs_length_h (float): Target observation length, in hours
+        num_antennas(int): Number of antennas in a station.
 
     Returns:
         Noise RMS in Jy
     """
-    t_acc = (target_obs_length_h * 3600) / num_times
+    t_acc = (obs_length_h * 3600) / num_times
     t_sys = system_temp(freq_hz)
     a_eff = element_effective_area(freq_hz) * num_antennas
 
     # Single receiver polarisation SEFD
     sefd = (2.0 * const.k_B.value * t_sys * eta) / a_eff
-    sigma_pq = (sefd * 1e26) / (2.0 * bw_hz * t_acc) ** 0.5
+    sigma_pq = (sefd * 1e26) / (2.0 * bw_hz * t_acc)**0.5
+    # Stokes-I noise is from two receiver polarisations -> scale by 1 / sqrt(2)
     sigma_pq /= 2**0.5
     return sigma_pq
 
@@ -425,17 +426,17 @@ def main():
     # Options
     # =========================================================================
     # Telescope model
-    lon, lat = 116.63128900, -26.69702400
+    lon, lat = 116.63128900, -26.69702400  # degrees
     station_d = 35.0  # m
-    r_cut = 1000  # m
-    eta = 1.0
+    telescope_radius_cut = 1000  # m (Remote stations in the telescope > this)
+    eta = 1.0  # System efficiency
 
     # Observation settings
-    az0, el0, date0 = 0.0, 90.0, '2016/7/14 10:30'
-    start_freqs = [50e6]
+    az0, el0, date0 = 0.0, 90.0, '2016/7/14 10:30'  # Midpoint coordinates
+    start_freqs = [50e6, 100e6, 150e6, 200e6]  # Cube start frequencies
     num_channels, freq_inc = 80, 100e3
     obs_length_h, noise_obs_length_h = 5, 1000
-    t_acc = 60.0
+    t_acc = 60.0  # Time resolution of visibility coordinates, in seconds.
 
     # Image settings
     im_size = 512
@@ -446,7 +447,8 @@ def main():
     results_dir = 'noise_cubes_%s_%s' % (weights, algorithm.lower())
     # =========================================================================
 
-    # Calculate observation parameters
+    # Calculate observation equatorial coordinates and start MJD of the
+    # specified target field
     obs = ephem.Observer()
     obs.lon, obs.lat, obs.elevation = radians(lon), radians(lat), 0.0
     obs.date = str(date0)
@@ -455,19 +457,21 @@ def main():
     mjd_mid = ephem.julian_date(b'2016/02/25 10:30') - 2400000.5
     mjd_start = mjd_mid - obs_length_h / (2 * 24.0)
 
-    # Load telescope and generate uvw coordinates
+    # Load telescope model and generate uvw coordinates, in metres
     coords_file = join(results_dir, 'uvw_m.npz')
-    x, y, z = load_telescope(r_cut, station_d, lon, lat,
+    x, y, z = load_telescope(telescope_radius_cut, station_d, lon, lat,
                              join(results_dir, 'telescope.png'))
+    num_stations = x.shape[0]
     uu, vv, ww, num_times = generate_uvw_coords_m(x, y, z, obs_length_h,
                                                   mjd_mid, t_acc, ra, dec,
                                                   join(results_dir, 'uvw'))
     t0 = time.time()
-    np.savez(coords_file, uu=uu, vv=vv, ww=ww, x=x, y=y, z=z, num_times=num_times)
+    np.savez(coords_file, uu=uu, vv=vv, ww=ww, x=x, y=y, z=z,
+             num_times=num_times)
+    print('- No. stations = %i' % num_stations)
     print('- Saved uvw coordinates in %.2f s' % (time.time() - t0))
 
-    num_stations = x.shape[0]
-    print('- No. stations = %i' % num_stations)
+    # Evaluate radial uv co-ordinate range (needed for lambda cut)
     r_uvw = (uu**2 + vv**2)**0.5
     r_uvw_min = r_uvw.min()
     r_uvw_max = r_uvw.max()
@@ -476,10 +480,13 @@ def main():
     noise_cube = np.zeros((num_channels, im_size, im_size))
     psf_cube = np.zeros((num_channels, im_size, im_size))
 
-    print()
+    # Loop over cube start frequency.
     for i, start_freq in enumerate(start_freqs):
-        print('- Freq = %.1f MHz (+%i x %0.1f kHz)'
-              % (start_freq / 1e6, num_channels, freq_inc/1e3))
+        print()
+        print('- Freq = %.1f MHz (+%i x %0.1f kHz)' %
+              (start_freq / 1e6, num_channels, freq_inc/1e3))
+
+        # Array of cube frequency channels
         freqs = (start_freq + (np.arange(num_channels) * freq_inc + freq_inc / 2))
 
         # Calculate image FoV and lambda cuts
@@ -489,54 +496,65 @@ def main():
         print('- FoV = %.2f deg.' % fov_deg)
         print('- lambda cut = %.0f, %.0f' % (l_cut_inner, l_cut_outer))
 
+        # Generate file names of image cube and noise outputs.
         suffix = ('%05.1fMHz_lcut_%04i_%04i_%s_%s' %
                   (start_freq / 1e6, l_cut_inner, l_cut_outer, weights,
                    algorithm.lower()))
         noise_cube_file = join(results_dir, 'noise_' + suffix + '.fits')
         noise_cube_file_k = join(results_dir, 'noise_' + suffix + '_K.fits')
         psf_cube_file = join(results_dir, 'psf_' + suffix + '.fits')
-        noise_sigma_file = join(results_dir, 'noise_sigma_%05.1fMHz.npz' % (start_freq / 1e6))
+        noise_sigma_file = join(results_dir, 'noise_sigma_%05.1fMHz.npz'
+                                % (start_freq / 1e6))
 
         t0 = time.time()
+        # Option to load existing image cubes (used to skip directly to fitting
+        # the psf and converting to K)
         if os.path.exists(noise_cube_file):
-            # Option to load existing cubes (used if we just want to refit psf and convert to K)
             noise_cube = fits.getdata(noise_cube_file)
             psf_cube = fits.getdata(psf_cube_file)
+        # Simulate / image the noise cube (in Jy/beam) and PSF cube.
         else:
             sigma_pq, sigma_im = np.zeros(num_channels), np.zeros(num_channels)
-            pbar = ProgressBar(maxval=num_channels, widgets=[
-                Bar(marker='='), ' ', Counter(), ' ', Percentage(), ' ', Timer(), ' ', ETA()])
-            pbar.start()
-            # Loop over frequencies in the 8MHz cube
+            progress_bar = ProgressBar(maxval=num_channels, widgets=[
+                Bar(marker='='), Counter(format='%03i'),
+                '/%03i ' % num_channels, Percentage(), ' ', Timer(), ' ',
+                ETA()]).start()
+            # Loop over frequencies in the cube
             for j, freq in enumerate(freqs):
-                # Convert to wavelength and apply lambda cut
+                # Convert coordinates wavelength and apply lambda cut
                 wavelength = const.c.value / freq
                 uu_l = (uu / wavelength)
                 vv_l = (vv / wavelength)
                 ww_l = (ww / wavelength)
                 r_uv = (uu_l**2 + vv_l**2)**0.5
-                idx = np.where(np.logical_and(r_uv >= l_cut_inner, r_uv <= l_cut_outer))
+                idx = np.where(np.logical_and(r_uv >= l_cut_inner,
+                                              r_uv <= l_cut_outer))
                 uu_l, vv_l, ww_l = uu_l[idx], vv_l[idx], ww_l[idx]
                 num_coords = uu_l.shape[0]
 
                 # Evaluate visibility noise (and predicted image noise)
-                sigma_pq[j] = evaluate_effective_noise_rms(
+                sigma_pq[j] = evaluate_scaled_noise_rms(
                     freq, num_times, freq_inc, eta, noise_obs_length_h)
                 sigma_im[j] = sigma_pq[j] / num_coords**0.5
 
                 # Make the noise image
                 amp = (randn(num_coords) + 1j * randn(num_coords)) * sigma_pq[j]
-                noise_cube[j, :, :] = Imager.make_image(uu_l, vv_l, ww_l, amp.astype('c8'), fov_deg, im_size, weights, algorithm)
+                noise_cube[j, :, :] = Imager.make_image(uu_l, vv_l, ww_l,
+                                                        amp.astype('c8'),
+                                                        fov_deg, im_size,
+                                                        weights, algorithm)
 
                 # Make the psf
                 amp = np.ones(uu_l.shape[0], dtype='c8')
-                psf_cube[j, :, :] = Imager.make_image(uu_l, vv_l, ww_l, amp, fov_deg, im_size, weights, algorithm)
-                pbar.update(j)
-            pbar.finish()
+                psf_cube[j, :, :] = Imager.make_image(uu_l, vv_l, ww_l, amp,
+                                                      fov_deg, im_size, weights,
+                                                      algorithm)
+                progress_bar.update(j)
+            progress_bar.finish()
 
             # Save noise values and cube images in Jy/beam
-            np.savez_compressed(noise_sigma_file, freqs=freqs,
-                                sigma_pq=sigma_pq, sigma_im=sigma_im)
+            np.savez(noise_sigma_file, freqs=freqs, sigma_pq=sigma_pq,
+                     sigma_im=sigma_im)
             write_fits_cube(noise_cube, noise_cube_file, ra, dec, mjd_start,
                             start_freq, freq_inc, fov_deg,
                             [l_cut_inner, l_cut_outer], weights, algorithm)
@@ -545,7 +563,7 @@ def main():
                             [l_cut_inner, l_cut_outer], weights, algorithm)
         print('- Time taken = %.2f s (image cube)' % (time.time() - t0))
 
-        # Fit the PSF with a gaussian to evaluate the beam area
+        # Fit the PSF with a gaussian to evaluate the beam area (in arcmin^2)
         t0 = time.time()
         area_arcmin2 = eval_beam_area(psf_cube, l_cut_outer, fov_deg, freqs,
                                       start_freq, results_dir, weights,
