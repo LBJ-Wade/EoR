@@ -2,10 +2,10 @@
 
 ## 1. Noise cubes
 Scripts for simulating noise cubes can be found in the folder 
-`noise_cube/`.
+`noise_cube/`
 
 - `sim_cube.py`: Script to generate noise cubes (simulation + imaging). 
-    Simulates noise for a 1000h observation equivalent to repeatedly     
+    Simulates noise for a 1000h observation equivalent to repeatedly 
     observing the same field for 5 hours for the same range of hour 
     angles. Uncorrelated random Gaussian noise is added to Stokes-I 
     visibilities with a noise RMS based on antenna element system 
