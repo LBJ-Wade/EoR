@@ -13,8 +13,8 @@ from progressbar import ProgressBar, Percentage, Bar
 import seaborn
 from scipy.interpolate import interp1d
 import sys
-from noise_cube.sim_cube_final import (evaluate_noise_rms,
-                                       evaluate_effective_noise_rms)
+from noise_cube.sim_cube import (evaluate_noise_rms,
+                                 evaluate_scaled_noise_rms)
 seaborn.set_style('ticks')
 
 def plot_noise():
@@ -65,7 +65,7 @@ def plot_fit():
     start_freq = [50e6]
     weights = 'natural'
     algorithm = 'w-projection'
-    results_dir = 'results_noise_cubes_%s_%s' % (weights, algorithm)
+    results_dir = 'noise_cubes_%s_%s' % (weights, algorithm)
     psf_fit_file = join(results_dir, 'psf_fit_%05.1fMHz_%s.npz' %
                             (start_freq[0] / 1e6, weights))
     psf_fit = np.load(psf_fit_file)
@@ -101,5 +101,5 @@ def plot_fit():
 
 
 if __name__ == '__main__':
-    # plot_fit()
-    plot_noise()
+    plot_fit()
+    # plot_noise()

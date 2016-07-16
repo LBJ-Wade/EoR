@@ -23,7 +23,21 @@ from progressbar import ProgressBar, Percentage, Bar, ETA, Timer, Counter
 seaborn.set_style('ticks')
 
 
-def element_effective_area(freq_hz, debug_plot=False):
+raw_a_eff = {
+    'freqs': [0.05e9, 0.07e9, 0.11e9, 0.17e9, 0.25e9, 0.35e9, 0.45e9,
+              0.55e9, 0.65e9],
+    'values': [1.8791, 1.8791, 1.8694, 1.3193, 0.6080, 0.2956, 0.2046,
+               0.1384, 0.0792]
+}
+raw_t_sys = {
+    'freqs': [0.05e9, 0.07e9, 0.11e9, 0.17e9, 0.25e9, 0.35e9, 0.45e9,
+              0.55e9, 0.65e9],
+    'values': [4.0409e3, 1.5029e3, 0.6676e3, 0.2936e3, 0.1402e3, 0.0873e3,
+               0.0689e3, 0.0607e3, 0.0613e3]
+}
+
+
+def element_effective_area(freq_hz):
     """Return SKA1 Low element pattern effective area for given frequency
 
     Effective area values provided by Eloy de Lera Acedo
@@ -35,44 +49,19 @@ def element_effective_area(freq_hz, debug_plot=False):
     Returns:
         Element effective area, in m^2
     """
-    freqs = [0.05, 0.07, 0.11, 0.17, 0.25, 0.35, 0.45, 0.55, 0.65]
-    a_eff = [1.8791, 1.8791, 1.8694, 1.3193, 0.6080, 0.2956, 0.2046,
-             0.1384, 0.0792]
-    freqs, a_eff = np.array(freqs) * 1e9, np.array(a_eff)
+    freqs, a_eff = np.array(raw_a_eff['freqs']), np.array(raw_a_eff['values'])
     f_cut = 2
     f1 = interp1d(np.log10(freqs[:f_cut+1]), np.log10(a_eff[:f_cut+1]),
                   kind='slinear')
     f2 = interp1d(np.log10(freqs[f_cut:]), np.log10(a_eff[f_cut:]),
                   kind='cubic')
-    if debug_plot:
-        fig = plt.figure(figsize=(8, 8))
-        ax = fig.add_subplot(111)
-        ax.plot(freqs, a_eff, 'r.', ms=10.0, label='data')
-        freqs1_ = np.linspace(np.log10(0.05 * 1e9), np.log10(0.11 * 1e9), 500)
-        freqs2_ = np.linspace(np.log10(0.11 * 1e9), np.log10(0.65 * 1e9), 500)
-        ax.plot(10**freqs1_, 10**f1(freqs1_), 'b-', lw=1.0, label='interp')
-        ax.plot(10 ** freqs2_, 10 ** f2(freqs2_), 'b-', lw=1.0)
-        freqs_ = np.linspace(0.05 * 1e9, 0.65 * 1e9, 200)
-        areas = (const.c.value / freqs_)**2 / 3
-        ax.plot(freqs_, areas, 'g--', lw=1.0, label=r'$\lambda^{2} / 3$')
-        areas = np.ones_like(freqs_) * math.pi * (1.5 / 2) ** 2
-        ax.plot(freqs_, areas, 'g:', lw=1.5, label='area limit (d=1.5 m)')
-        ax.legend(fontsize='medium')
-        ax.set_xlabel('Frequency (hz)')
-        ax.set_ylabel(r'Element effective area ($m^2$)')
-        ax.set_xscale('log')
-        ax.set_yscale('log')
-        ax.set_ylim(0, 2)
-        ax.grid(True)
-        ax.set_xlim(freqs[0], freqs[-1])
-        plt.show()
     if freq_hz <= freqs[f_cut]:
         return 10**f1(np.log10(freq_hz))
     else:
         return 10**f2(np.log10(freq_hz))
 
 
-def system_temp(freq_hz, debug_plot=False):
+def system_temp(freq_hz):
     """Return SKA1 Low system temperatures for a given frequency.
 
     Values provided by Eloy de Lera Acedo
@@ -84,34 +73,9 @@ def system_temp(freq_hz, debug_plot=False):
     Returns:
         System temperature, in K
     """
-    freqs = [0.05, 0.07, 0.11, 0.17, 0.25, 0.35, 0.45, 0.55, 0.65]
-    t_sys = [4.0409e3, 1.5029e3, 0.6676e3, 0.2936e3, 0.1402e3, 0.0873e3,
-             0.0689e3, 0.0607e3, 0.0613e3]
-    freqs, t_sys = np.array(freqs) * 1e9, np.array(t_sys)
-    # f = interp1d(freqs, t_sys, kind='slinear')
-    f2 = interp1d(np.log10(freqs), np.log10(t_sys), kind='cubic')
-    if debug_plot:
-        fig = plt.figure(figsize=(8, 8))
-        ax = fig.add_subplot(111)
-        ax.plot(freqs, t_sys, 'r.', ms=10.0, label='data')
-        #freqs_ = np.linspace(0.05 * 1e9, 0.65 * 1e9, 500)
-        #ax.plot(freqs_, f(freqs_), 'b-', lw=1.0, label='interp')
-        freqs_ = np.linspace(np.log10(0.05 * 1e9), np.log10(0.65 * 1e9), 500)
-        ax.plot(10**freqs_, 10**f2(freqs_), 'b-', lw=1.0, label='interp')
-        freqs_ = np.linspace(0.05 * 1e9, 0.65 * 1e9, 20)
-        t_sys_ = 60.0 * (const.c / freqs_)**2.55
-        ax.plot(freqs_, t_sys_, 'g--', lw=1.0, ms=5.0, mew=1.2,
-                label='$60\lambda^{2.55}$')
-
-        ax.legend(fontsize='large')
-        ax.set_xlabel('Frequency (hz)')
-        ax.set_ylabel('System temperature (K)')
-        ax.set_xscale('log')
-        ax.set_yscale('log')
-        ax.grid(True)
-        ax.set_xlim(freqs[0], freqs[-1])
-        plt.show()
-    return 10**f2(np.log10(freq_hz))
+    freqs, t_sys = np.array(raw_t_sys['freqs']), np.array(raw_t_sys['values'])
+    f = interp1d(np.log10(freqs), np.log10(t_sys), kind='cubic')
+    return 10**f(np.log10(freq_hz))
 
 
 def evaluate_noise_rms(freq_hz, t_acc=5.0, bw_hz=100e3, eta=1.0,
@@ -364,7 +328,7 @@ def eval_beam_area(psf_cube, l_cut_outer, fov_deg, freqs, start_freq,
         # Crop to the ~first null
         vmin = 1e-5
         i0 = np.argmax(image[centre, centre:] < vmin)
-        i0 = int(i0 * 1.1)
+        i0 = int(i0 * 1.25)
         c1 = centre - i0
         c2 = centre + i0 + 1
         crop = image[c1:c2, c1:c2]
@@ -411,10 +375,12 @@ def eval_beam_area(psf_cube, l_cut_outer, fov_deg, freqs, start_freq,
             ax2.set_ylabel('PSF amplitude')
             ax2.set_yscale('log')
             ax2.legend()
-            fig.savefig(join(fit_plot_dir, 'fit_xy_cut_%05.1fMHz_c%03i_%s.png' % (start_freq / 1e6, i, weights)))
+            fig.savefig(join(fit_plot_dir, 'fit_xy_cut_%05.1fMHz_c%03i_%s.png'
+                             % (start_freq / 1e6, i, weights)))
             plt.close(fig)
 
-    psf_fit_file = join(results_dir, 'psf_fit_%05.1fMHz_%s.npz' % (start_freq / 1e6, weights))
+    psf_fit_file = join(results_dir, 'psf_fit_%05.1fMHz_%s.npz'
+                        % (start_freq / 1e6, weights))
     np.savez_compressed(psf_fit_file, sigma_x_arcmin=sigma_x_arcmin,
                         sigma_y_arcmin=sigma_y_arcmin, theta_deg=theta_deg,
                         area_arcmin2=area_arcmin2, fit_rms=fit_rms, freqs=freqs,
@@ -433,7 +399,7 @@ def main():
 
     # Observation settings
     az0, el0, date0 = 0.0, 90.0, '2016/7/14 10:30'  # Midpoint coordinates
-    start_freqs = [50e6, 100e6, 150e6, 200e6]  # Cube start frequencies
+    start_freqs = 50e6 + np.array([0, 6, 12, 18]) * 8e6
     num_channels, freq_inc = 80, 100e3
     obs_length_h, noise_obs_length_h = 5, 1000
     t_acc = 60.0  # Time resolution of visibility coordinates, in seconds.
@@ -441,10 +407,14 @@ def main():
     # Image settings
     im_size = 512
     algorithm = 'w-projection'
-    weights = 'natural'
+    weights = 'uniform'
+    lambda_cut = False
+    w_planes = 64
 
     # Results directory
     results_dir = 'noise_cubes_%s_%s' % (weights, algorithm.lower())
+    if algorithm.lower().startswith('w') and w_planes > 0:
+        results_dir += '_%i' % w_planes
     # =========================================================================
 
     # Calculate observation equatorial coordinates and start MJD of the
@@ -460,7 +430,7 @@ def main():
     # Load telescope model and generate uvw coordinates, in metres
     coords_file = join(results_dir, 'uvw_m.npz')
     x, y, z = load_telescope(telescope_radius_cut, station_d, lon, lat,
-                             join(results_dir, 'telescope.png'))
+                             join(results_dir, 'telescope.eps'))
     num_stations = x.shape[0]
     uu, vv, ww, num_times = generate_uvw_coords_m(x, y, z, obs_length_h,
                                                   mjd_mid, t_acc, ra, dec,
@@ -490,16 +460,22 @@ def main():
         freqs = (start_freq + (np.arange(num_channels) * freq_inc + freq_inc / 2))
 
         # Calculate image FoV and lambda cuts
-        fov_deg = degrees((const.c.value / start_freq) / station_d)
-        l_cut_inner = ceil(r_uvw_min / (const.c.value / freqs[-1]))
-        l_cut_outer = floor(r_uvw_max / (const.c.value / freqs[0]))
+        fov_deg = 1.5 * degrees((const.c.value / start_freq) / station_d)
         print('- FoV = %.2f deg.' % fov_deg)
-        print('- lambda cut = %.0f, %.0f' % (l_cut_inner, l_cut_outer))
 
         # Generate file names of image cube and noise outputs.
-        suffix = ('%05.1fMHz_lcut_%04i_%04i_%s_%s' %
-                  (start_freq / 1e6, l_cut_inner, l_cut_outer, weights,
-                   algorithm.lower()))
+        if lambda_cut:
+            l_cut_inner = ceil(r_uvw_min / (const.c.value / freqs[-1]))
+            l_cut_outer = floor(r_uvw_max / (const.c.value / freqs[0]))
+            print('- lambda cut = %.0f, %.0f' % (l_cut_inner, l_cut_outer))
+            suffix = ('%05.1fMHz_lcut_%04i_%04i_%s_%s' %
+                      (start_freq / 1e6, l_cut_inner, l_cut_outer, weights,
+                       algorithm.lower()))
+        else:
+            suffix = ('%05.1fMHz_%s_%s' % (start_freq / 1e6, weights,
+                                           algorithm.lower()))
+        l_cut = [l_cut_inner, l_cut_outer] if lambda_cut else None
+
         noise_cube_file = join(results_dir, 'noise_' + suffix + '.fits')
         noise_cube_file_k = join(results_dir, 'noise_' + suffix + '_K.fits')
         psf_cube_file = join(results_dir, 'psf_' + suffix + '.fits')
@@ -526,10 +502,11 @@ def main():
                 uu_l = (uu / wavelength)
                 vv_l = (vv / wavelength)
                 ww_l = (ww / wavelength)
-                r_uv = (uu_l**2 + vv_l**2)**0.5
-                idx = np.where(np.logical_and(r_uv >= l_cut_inner,
-                                              r_uv <= l_cut_outer))
-                uu_l, vv_l, ww_l = uu_l[idx], vv_l[idx], ww_l[idx]
+                if lambda_cut:
+                    r_uv = (uu_l**2 + vv_l**2)**0.5
+                    idx = np.where(np.logical_and(r_uv >= l_cut_inner,
+                                                  r_uv <= l_cut_outer))
+                    uu_l, vv_l, ww_l = uu_l[idx], vv_l[idx], ww_l[idx]
                 num_coords = uu_l.shape[0]
 
                 # Evaluate visibility noise (and predicted image noise)
@@ -540,15 +517,17 @@ def main():
                 # Make the noise image
                 amp = (randn(num_coords) + 1j * randn(num_coords)) * sigma_pq[j]
                 noise_cube[j, :, :] = Imager.make_image(uu_l, vv_l, ww_l,
-                                                        amp.astype('c8'),
+                                                        amp,
                                                         fov_deg, im_size,
-                                                        weights, algorithm)
+                                                        weights, algorithm,
+                                                        wprojplanes=w_planes)
 
                 # Make the psf
-                amp = np.ones(uu_l.shape[0], dtype='c8')
+                amp = np.ones(uu_l.shape[0], dtype='c16')
                 psf_cube[j, :, :] = Imager.make_image(uu_l, vv_l, ww_l, amp,
                                                       fov_deg, im_size, weights,
-                                                      algorithm)
+                                                      algorithm,
+                                                      wprojplanes=w_planes)
                 progress_bar.update(j)
             progress_bar.finish()
 
@@ -557,17 +536,19 @@ def main():
                      sigma_im=sigma_im)
             write_fits_cube(noise_cube, noise_cube_file, ra, dec, mjd_start,
                             start_freq, freq_inc, fov_deg,
-                            [l_cut_inner, l_cut_outer], weights, algorithm)
+                            l_cut, weights, algorithm)
             write_fits_cube(psf_cube, psf_cube_file, ra, dec, mjd_start,
                             start_freq, freq_inc, fov_deg,
-                            [l_cut_inner, l_cut_outer], weights, algorithm)
+                            l_cut, weights, algorithm)
         print('- Time taken = %.2f s (image cube)' % (time.time() - t0))
 
         # Fit the PSF with a gaussian to evaluate the beam area (in arcmin^2)
         t0 = time.time()
-        area_arcmin2 = eval_beam_area(psf_cube, l_cut_outer, fov_deg, freqs,
+        r_uv_max_l = l_cut_outer if lambda_cut else \
+            r_uvw_max / (const.c.value / start_freq)
+        area_arcmin2 = eval_beam_area(psf_cube, r_uv_max_l, fov_deg, freqs,
                                       start_freq, results_dir, weights,
-                                      plot=False)
+                                      plot=True)
         print('- Time taken = %.2f s (fit area)' % (time.time() - t0))
 
         # Convert cube from Jy/beam to K
@@ -579,7 +560,7 @@ def main():
             image *= (1e-26 * const.c.value**2) / (2 * const.k_B.value * freq**2)
         write_fits_cube(noise_cube, noise_cube_file_k, ra, dec, mjd_start,
                         start_freq, freq_inc, fov_deg,
-                        [l_cut_inner, l_cut_outer], weights, algorithm,
+                        l_cut, weights, algorithm,
                         bunit='K')
         print('- Time taken = %.2f s (convert to K)' % (time.time() - t0))
         print()
