@@ -399,7 +399,9 @@ def main():
 
     # Observation settings
     az0, el0, date0 = 0.0, 90.0, '2016/7/14 10:30'  # Midpoint coordinates
-    start_freqs = 50e6 + np.array([0, 6, 12, 18]) * 8e6
+    #start_freqs = 50e6 + np.array([0, 6, 12, 18]) * 8e6
+    # start_freqs = [50e6]
+    start_freqs = 50e6 + np.array([6, 12, 18]) * 8e6
     num_channels, freq_inc = 80, 100e3
     obs_length_h, noise_obs_length_h = 5, 1000
     t_acc = 60.0  # Time resolution of visibility coordinates, in seconds.
@@ -408,7 +410,7 @@ def main():
     im_size = 512
     algorithm = 'w-projection'
     weights = 'uniform'
-    lambda_cut = False
+    lambda_cut = True
     w_planes = 64
 
     # Results directory
@@ -474,13 +476,14 @@ def main():
         else:
             suffix = ('%05.1fMHz_%s_%s' % (start_freq / 1e6, weights,
                                            algorithm.lower()))
+        if algorithm.lower().startswith('w') and w_planes > 0:
+            suffix += '_%i' % w_planes
         l_cut = [l_cut_inner, l_cut_outer] if lambda_cut else None
 
         noise_cube_file = join(results_dir, 'noise_' + suffix + '.fits')
         noise_cube_file_k = join(results_dir, 'noise_' + suffix + '_K.fits')
         psf_cube_file = join(results_dir, 'psf_' + suffix + '.fits')
-        noise_sigma_file = join(results_dir, 'noise_sigma_%05.1fMHz.npz'
-                                % (start_freq / 1e6))
+        noise_sigma_file = join(results_dir, 'noise_sigma_' + suffix + '.npz')
 
         t0 = time.time()
         # Option to load existing image cubes (used to skip directly to fitting
@@ -491,6 +494,7 @@ def main():
         # Simulate / image the noise cube (in Jy/beam) and PSF cube.
         else:
             sigma_pq, sigma_im = np.zeros(num_channels), np.zeros(num_channels)
+            num_coords = np.zeros(num_channels, dtype='i8')
             progress_bar = ProgressBar(maxval=num_channels, widgets=[
                 Bar(marker='='), Counter(format='%03i'),
                 '/%03i ' % num_channels, Percentage(), ' ', Timer(), ' ',
@@ -507,15 +511,15 @@ def main():
                     idx = np.where(np.logical_and(r_uv >= l_cut_inner,
                                                   r_uv <= l_cut_outer))
                     uu_l, vv_l, ww_l = uu_l[idx], vv_l[idx], ww_l[idx]
-                num_coords = uu_l.shape[0]
+                num_coords[j] = uu_l.shape[0]
 
                 # Evaluate visibility noise (and predicted image noise)
                 sigma_pq[j] = evaluate_scaled_noise_rms(
                     freq, num_times, freq_inc, eta, noise_obs_length_h)
-                sigma_im[j] = sigma_pq[j] / num_coords**0.5
+                sigma_im[j] = sigma_pq[j] / num_coords[j]**0.5
 
                 # Make the noise image
-                amp = (randn(num_coords) + 1j * randn(num_coords)) * sigma_pq[j]
+                amp = (randn(num_coords[j]) + 1j * randn(num_coords[j])) * sigma_pq[j]
                 noise_cube[j, :, :] = Imager.make_image(uu_l, vv_l, ww_l,
                                                         amp,
                                                         fov_deg, im_size,
@@ -533,7 +537,7 @@ def main():
 
             # Save noise values and cube images in Jy/beam
             np.savez(noise_sigma_file, freqs=freqs, sigma_pq=sigma_pq,
-                     sigma_im=sigma_im)
+                     sigma_im=sigma_im, num_coords=num_coords)
             write_fits_cube(noise_cube, noise_cube_file, ra, dec, mjd_start,
                             start_freq, freq_inc, fov_deg,
                             l_cut, weights, algorithm)
@@ -548,7 +552,7 @@ def main():
             r_uvw_max / (const.c.value / start_freq)
         area_arcmin2 = eval_beam_area(psf_cube, r_uv_max_l, fov_deg, freqs,
                                       start_freq, results_dir, weights,
-                                      plot=True)
+                                      plot=False)
         print('- Time taken = %.2f s (fit area)' % (time.time() - t0))
 
         # Convert cube from Jy/beam to K

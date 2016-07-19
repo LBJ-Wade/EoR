@@ -1,3 +1,5 @@
 /.idea/
 /noise_cube/results/
+/noise_cube/noise_cubes*/
+/noise_cube/*.png
 *.pyc
