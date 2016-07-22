@@ -20,5 +20,6 @@ Scripts for simulating noise cubes can be found in the folder
 - `plot_cube.py`: Script to plot data the noise cube simulation 
    (used for debugging)
 
+See https://www.overleaf.com/read/nqqdzzdqnpqc for a description of the current noise cube simulation.
 
 
