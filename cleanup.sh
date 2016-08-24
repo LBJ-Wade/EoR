@@ -1,0 +1,15 @@
+rm -rf Ini
+rm -rf Vis
+rm -rf IMG*
+rm -rf Images
+rm -f  Models/*.osm
+rm -f  Models/*.osm.reg
+rm -f  Models/IMG*.fits
+rm -f  *~
+rm -f  slurm-*.out
+rm -f  *.pyc
+rm -f  clean.last
+rm -f  ipython*.log
+rm -f  exportfits.last
+rm -f  casapy*.log
+rm -f *.log
