@@ -26,9 +26,9 @@ simtype=$3
 # USER: define combined cosmological signal and foregrounds file string
 fname1=$4
 
-fname_cs_fg_no=$fname1
+fname_cs_fg_no=${fname1}
 
 echo "Running OSKAR on a lightcone of the following sky model:"
-echo $fname_cs_fg_no
+echo ${fname_cs_fg_no}
 
-sbatch submit_sim.tesla $fname_cs_fg_no $start_channel $end_channel $simtype
+sbatch submit_sim.tesla ${fname_cs_fg_no} ${start_channel} ${end_channel} ${simtype}

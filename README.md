@@ -23,3 +23,6 @@ Scripts for simulating noise cubes can be found in the folder
 See https://www.overleaf.com/read/nqqdzzdqnpqc for a description of the current noise cube simulation.
 
 
+## 2. EoR pipeline scripts
+
+EoR pipeline scipts can be found in the folder `EoR_pipeline/`.

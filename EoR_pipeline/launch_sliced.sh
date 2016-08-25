@@ -19,8 +19,8 @@ start_channel=$1
 end_channel=$2
 # ========================
 
-for i in $(eval echo {$start_channel..$end_channel}); do
-    echo "Channel $i"
+for i in $(eval echo {${start_channel}..${end_channel}}); do
+    echo "Channel ${i}"
     # USER: define foreground file string
     fname1="Models/fg_zeromean_highres"
     # USER: define cosmological signal file string
@@ -28,23 +28,23 @@ for i in $(eval echo {$start_channel..$end_channel}); do
     # USER: define noise file string
     fname44="Models/noise"
 
-    printf -v fname2 "%03d" $i
+    printf -v fname2 "%03d" ${i}
     #cw(redundant) fname3=".fits"
 
-    fnamefg=$fname1$fname2
-    fnamecs=$fname4$fname2
-    fnameno=$fname44$fname2
+    fnamefg=${fname1}${fname2}
+    fnamecs=${fname4}${fname2}
+    fnameno=${fname44}${fname2}
 
     echo "Running OSKAR on a slice-by-slice basis to the following sky models:"
-    echo $fnamefg
-    echo $fnamecs
-    echo $fnameno
+    echo ${fnamefg}
+    echo ${fnamecs}
+    echo ${fnameno}
 
-    ''' USER: Submit three parallel realisations of the OSKAR code with jobfile run_sim.tesla
-    (this is for use on the Cambs HPC cluster and will be need to be ammended for other clusters)
-    running on foregrounds, cosmological signal and noise (top to bottom).
-     '''
-    sbatch submit_sim.tesla $fnamefg $i $i 1
-    sbatch submit_sim.tesla $fnamecs $i $i 2
-    sbatch submit_sim.tesla $fnameno $i $i 3
+    #USER: Submit three parallel realisations of the OSKAR code with jobfile
+    #      run_sim.tesla (this is for use on the Cambs HPC cluster and will be
+    #      need to be ammended for other clusters) running on foregrounds,
+    #      cosmological signal and noise (top to bottom).
+    sbatch submit_sim.tesla ${fnamefg} ${i} ${i} 1
+    sbatch submit_sim.tesla ${fnamecs} ${i} ${i} 2
+    sbatch submit_sim.tesla ${fnameno} ${i} ${i} 3
 done

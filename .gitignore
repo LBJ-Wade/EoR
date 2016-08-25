@@ -3,3 +3,4 @@
 /noise_cube/noise_cubes*/
 /noise_cube/*.png
 *.pyc
+/.DS_Store

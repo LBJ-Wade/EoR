@@ -16,7 +16,7 @@ from astropy import constants as const
 from astropy.io import fits
 import ephem
 from pyuvwsim import convert_enu_to_ecef, evaluate_baseline_uvw
-from oskar import Imager
+from oskar.imager import Imager
 import seaborn
 import matplotlib.pyplot as plt
 from progressbar import ProgressBar, Percentage, Bar, ETA, Timer, Counter

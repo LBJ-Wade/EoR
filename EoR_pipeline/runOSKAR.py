@@ -1,80 +1,97 @@
 #!/usr/bin/python
-'''
+# -*- coding: utf-8 -*-
+"""
 This is an updated version of sim.py created by Catherine Watkinson (Feb 2016).
 
 This takes the sky model filename as an arguement allowing cosmological signal,
 foregrounds and noise to be run in parallel.
 
 User defined variables have also been centralised in USER_DEFINED_VARIABLES.py
-'''
-def create_dir(name):
-    import os
-    if not os.path.isdir(name):
-        os.makedirs(name)
+"""
+from __future__ import (absolute_import, print_function, division,
+                        unicode_literals)
+import os
+import sys
+import numpy as np
+import pyfits
+from PIL import Image
+from subprocess import call, Popen, PIPE
+import re
+from math import sin, asin, cos, degrees, radians, log, pi
+from user_defined_variables.USER_DEFINED import runtime_variables as rv
+
 
 def setup_data_dirs(dir_list):
-    for dir_ in dir_list:
-        create_dir(dir_)
+    """Utility function to create a set of directories."""
+    for dir_name in dir_list:
+        if not os.path.isdir(dir_name):
+            os.makedirs(dir_name)
+
 
 def channel_to_freq(idx):
-    from User_defined_variables.USER_DEFINED import runtime_variables as rv
-
+    """Convert channel index to frequency, in hz"""
     freq0 = rv.user_obs['start_freq'] #cw 115.0e6
     inc   = rv.user_obs['freq_inc'] #cw 0.5e6
+    return freq0 + (idx * inc)
 
-    return freq0+(idx*inc)
 
 def fov_to_cellsize(fov_deg, size):
-    """Convert image FoV and size along one dimension in pixels to cellsize in arcseconds.
+    """Convert image FoV and size in pixels to cellsize in arcseconds.
 
-    Arguments:
-    fov_deg -- Image FoV, in degrees
-    size    -- Image size in one dimension in pixels
+    Args:
+        fov_deg (float): Image FoV, in degrees
+        size (int): Image size in one dimension in pixels
 
-    Return:
-    Image cellsize, in arcseconds
+    Returns:
+        tuple (float, float): Image cellsize, in arcseconds,
+            lm increment per pixel.
     """
-    import numpy as np
-    rmax = np.sin(fov_deg / 2.0 * (np.pi / 180.0))
-    inc  = rmax / (0.5 * size)
-    return np.arcsin(inc) * ((180.0 * 3600.0) / np.pi), inc
+    inc = (2 * sin(radians(fov_deg) * 0.5)) / size
+    return degrees(asin(inc)) * 3600.0, inc
 
-# # NOTE: This function only works if the grid is symmetric.
-# def image_lm_grid(size, fov_rad):
-#     import numpy as np
-#     lm_max = np.sin(0.5 * fov_rad)
-#     lm = np.linspace(-lm_max, lm_max, size)
-#     [l, m] = np.meshgrid(-lm, lm)
-#     return l, m
 
 def image_lm_grid(size, fov_rad):
-    import numpy as np
-    _,inc = fov_to_cellsize(fov_rad*(180.0/np.pi), size)
-    lm = np.arange(-size/2, size/2)*inc
-    [l,m]=np.meshgrid(-lm,lm)
-    return l,m
+    """Returns the l, m coordinates for each pixel in the image."""
+    _, inc = fov_to_cellsize(degrees(fov_rad), size)
+    lm = np.arange(-size // 2, size // 2) * inc
+    l, m = np.meshgrid(-lm, lm)
+    return l, m
+
 
 def lm_to_apparent_ra_dec(l, m, ra0_rad, dec0_rad):
-    import numpy as np
-    n = np.sqrt(1.0 - l*l - m*m)
-    sinDec0 = np.sin(dec0_rad)
-    cosDec0 = np.cos(dec0_rad)
-    dec_rad = np.arcsin(n * sinDec0 + m * cosDec0)
-    ra_rad = ra0_rad + np.arctan2(l, n * cosDec0 - m * sinDec0)
+    """Convert image direction cosines (l, m) to equatorial coordinates.
+
+    Args:
+        l (array, float): l direction cosines to convert.
+        m (array, float): m direction cosines to convert.
+        ra0_rad (float):
+            Reference Right Ascension (image phase centre), in radians.
+        dec0_rad (float):
+            Reference Declination (image phase centre), in radians.
+
+    Returns:
+        tuple (array, array): Equatorial coordinates for each input l, m
+        direction, in radians.
+    """
+    n = (1.0 - l**2 - m**2)**0.5
+    sin_dec0 = sin(dec0_rad)
+    cos_dec0 = cos(dec0_rad)
+    dec_rad = np.arcsin(n * sin_dec0 + m * cos_dec0)
+    ra_rad = ra0_rad + np.arctan2(l, n * cos_dec0 - m * sin_dec0)
     return ra_rad, dec_rad
 
+
 def image_coords(size, fov_rad, ra0_rad, dec0_rad):
+    """Obtain image equatorial coordinates for each pixel in an image."""
     l, m = image_lm_grid(size, fov_rad)
     return lm_to_apparent_ra_dec(l, m, ra0_rad, dec0_rad)
 
-def cube_to_osm(cube_filename, fov_deg, channelID, ra0_deg, dec0_deg, \
-        osm_filename, upscale_factor, save_fits=False):
-    import pyfits
-    import numpy as np
-    import os
-    from PIL import Image
-    ra0_rad = ra0_deg * np.pi / 180.0
-    dec0_rad = dec0_deg * np.pi / 180.0
+
+def cube_to_osm(cube_filename, fov_deg, channelID, ra0_deg, dec0_deg,
+                osm_filename, upscale_factor, save_fits=False):
+    """Convert image cube ot an oskar sky model file"""
+    ra0_rad = radians(ra0_deg)
+    dec0_rad = radians(dec0_deg)
 
     # Open the FITS image data cube
     # -------------------------------------------------------------------------
@@ -115,41 +132,42 @@ def cube_to_osm(cube_filename, fov_deg, channelID, ra0_deg, dec0_deg, \
     sky = sky[sky[:, 2] != 0.0, :]
 
     # Convert to Jy/pixel
-    old_cellsize,_ = fov_to_cellsize(fov_deg, old_size)
-    new_cellsize,_ = fov_to_cellsize(fov_deg, size)
+    old_cellsize, _ = fov_to_cellsize(fov_deg, old_size)
+    new_cellsize, _ = fov_to_cellsize(fov_deg, size)
     # new pixel size is smaller than the old pixel size so the pixel area ratio
-    # will be < 1 for all cases of upscaling.
+    # will be < 1 for all cases of up-scaling.
     kB = 1.3806488e-23
     c0 = 299792458.0
-    pixel_area = np.power(((new_cellsize / 3600.0) * np.pi / 180.0), 2)
+    pixel_area = radians(new_cellsize / 3600.0)**2
     # Convert from brightness temperature in K to Jy/Pixel
     # http://www.iram.fr/IRAMFR/IS/IS2002/html_1/node187.html
-    sky[:, 2] *= 2.0 * kB * 1.0e26 * pixel_area * np.power(freqHz/c0,2)
+    sky[:, 2] *= 2.0 * kB * 1.0e26 * pixel_area * (freqHz/c0)**2
 
-    if (os.path.exists(osm_filename)):
+    if os.path.exists(osm_filename):
         os.remove(osm_filename)
 
-    if (np.__version__ == '1.4.1'):
+    if np.__version__ == '1.4.1':
         np.savetxt(osm_filename, sky, fmt='%.10e, %.10e, %.10e')
     else:
-        np.savetxt(osm_filename, sky, fmt='%.10e, %.10e, %.10e', \
-            header = \
-            'Channel = %i\n'\
-            'Frequency = %e MHz\n'\
-            'Number of sources = %i\n'\
-            'Cellsize = %f arcsec (pixel separation at centre)\n'\
-            'RA0 = %f\n' \
-            'Dec0 = %f\n' \
-            % (channelID, freqHz, len(sky), new_cellsize, ra0_deg, dec0_deg))
+        np.savetxt(osm_filename, sky, fmt='%.10e, %.10e, %.10e',
+                   header = str(
+                       'Channel = %i\n'
+                       'Frequency = %e MHz\n'
+                       'Number of sources = %i\n'
+                       'Cellsize = %f arcsec (pixel separation at centre)\n'
+                       'RA0 = %f\n'
+                       'Dec0 = %f\n'
+                       % (channelID, freqHz, len(sky), new_cellsize, ra0_deg,
+                          dec0_deg)))
 
     # Save FITS maps of the selected channel slice
-    if save_fits == True:
+    if save_fits:
         if os.path.basename(cube_filename)[0] == 'f':
             rootname = os.path.basename(cube_filename)[:-5]
         elif os.path.basename(cube_filename)[0] == 'c':
             rootname = os.path.basename(cube_filename)[:-7]
         else:
-            print cube_filename
+            print(cube_filename)
             raise RuntimeError('Unknown cube filename')
         #outpath = 'os.path.dirname(cube_filename)'
         #rootname = os.path.basename(cube_filename) #cw added so below doesn't end up calling Models/Models/filename
@@ -166,12 +184,12 @@ def cube_to_osm(cube_filename, fov_deg, channelID, ra0_deg, dec0_deg, \
         hdr['BUNIT']  = ('K', 'Brightness unit')
         hdr['CTYPE1'] = 'RA---SIN'
         hdr['CRVAL1'] = ra0_deg
-        hdr['CDELT1'] = -old_cellsize / 3600.0
-        hdr['CRPIX1'] = im0.shape[1] / 2 + 1 # WARNING! Assumes even image dims
+        hdr['CDELT1'] = -old_cellsize / 3600
+        hdr['CRPIX1'] = im0.shape[1] // 2 + 1 # WARNING! Assumes even image dims
         hdr['CTYPE2'] = 'DEC--SIN'
         hdr['CRVAL2'] = dec0_deg
         hdr['CDELT2'] = old_cellsize / 3600.0
-        hdr['CRPIX2'] = im0.shape[1] / 2 + 1 # WARNING! Assumes even image dims
+        hdr['CRPIX2'] = im0.shape[1] // 2 + 1 # WARNING! Assumes even image dims
         hdr['CTYPE3'] = 'FREQ'
         hdr['CRVAL3'] = freqHz
         hdr['CDELT3'] = 1
@@ -180,7 +198,8 @@ def cube_to_osm(cube_filename, fov_deg, channelID, ra0_deg, dec0_deg, \
         hdulist.close()
 
         #rescaled_img = 'models/rescaled_image_slice_%03i.fits' % (channelID)
-        rescaled_img = '%s/IMG_%s_K_rescaled_%03i.fits' % (outpath, rootname, channelID)
+        rescaled_img = ('%s/IMG_%s_K_rescaled_%03i.fits' %
+                        (outpath, rootname, channelID))
         if os.path.exists(rescaled_img): os.remove(rescaled_img)
         im1 = np.reshape(im1, (1, im1.shape[0], im1.shape[1]))
         hdu = pyfits.PrimaryHDU(im1)
@@ -189,12 +208,12 @@ def cube_to_osm(cube_filename, fov_deg, channelID, ra0_deg, dec0_deg, \
         hdr['BUNIT']  = ('K', 'Brightness unit')
         hdr['CTYPE1'] = 'RA---SIN'
         hdr['CRVAL1'] = ra0_deg
-        hdr['CDELT1'] = -new_cellsize / 3600.0
-        hdr['CRPIX1'] = im1.shape[1] / 2 + 1 # WARNING! Assumes even image dims
+        hdr['CDELT1'] = -new_cellsize / 3600
+        hdr['CRPIX1'] = im1.shape[1] // 2 + 1 # WARNING! Assumes even image dims
         hdr['CTYPE2'] = 'DEC--SIN'
         hdr['CRVAL2'] = dec0_deg
-        hdr['CDELT2'] = new_cellsize / 3600.0
-        hdr['CRPIX2'] = im1.shape[1] / 2 + 1 # WARNING! Assumes even image dims
+        hdr['CDELT2'] = new_cellsize / 3600
+        hdr['CRPIX2'] = im1.shape[1] // 2 + 1 # WARNING! Assumes even image dims
         hdr['CTYPE3'] = 'FREQ'
         hdr['CRVAL3'] = freqHz
         hdr['CDELT3'] = 1
@@ -204,10 +223,11 @@ def cube_to_osm(cube_filename, fov_deg, channelID, ra0_deg, dec0_deg, \
 
         # Convert to Jy/Beam
         uv_max = 3500 # m
-        FWHM = 1.22 * (c0/freqHz) / uv_max # Radians
-        beam_area = (np.pi * FWHM**2) / (4.0*np.log(2))
-        im2 = im1 * 2.0 * kB * 1.0e26 * beam_area * (freqHz/c0)**2
-        clean_component_img = '%s/IMG_%s_Jy_per_beam_%03i.fits' % (outpath,rootname, channelID)
+        FWHM = 1.22 * (c0 / freqHz) / uv_max  # Radians
+        beam_area = (pi * FWHM**2) / (4.0 * log(2))
+        im2 = im1 * 2.0 * kB * 1.0e26 * beam_area * (freqHz / c0)**2
+        clean_component_img = ('%s/IMG_%s_Jy_per_beam_%03i.fits' %
+                               (outpath,rootname, channelID))
         if os.path.exists(clean_component_img): os.remove(clean_component_img)
         hdu = pyfits.PrimaryHDU(im2)
         hdulist = pyfits.HDUList([hdu])
@@ -230,7 +250,8 @@ def cube_to_osm(cube_filename, fov_deg, channelID, ra0_deg, dec0_deg, \
 
         # Convert to Jy/Pixel
         im3 = im1 * 2.0 * kB * 1.0e26 * pixel_area * (freqHz/c0)**2
-        sky_model_img = '%s/IMG_%s_Jy_per_pixel_%03i.fits' % (outpath,rootname, channelID)
+        sky_model_img = ('%s/IMG_%s_Jy_per_pixel_%03i.fits' %
+                         (outpath, rootname, channelID))
         if os.path.exists(sky_model_img): os.remove(sky_model_img)
         hdu = pyfits.PrimaryHDU(im3)
         hdulist = pyfits.HDUList([hdu])
@@ -251,46 +272,50 @@ def cube_to_osm(cube_filename, fov_deg, channelID, ra0_deg, dec0_deg, \
         hdulist.writeto(sky_model_img)
         hdulist.close()
 
-    print '  Input file           = %s' % (cube_filename)
-    print '  Frequency            = %.4f MHz' % (freqHz / 1.0e6)
-    print '  Cube image size      =', im0.shape[1]
-    print '  No. sources          = %i [%i %s]' % (len(sky), (size*size)-len(sky), 'removed (==0.0)')
-    print '  Output sky model     =', osm_filename
-    print '  Writing FITS images  =', save_fits
-    if save_fits == True:
-        print '  Beam area            =', beam_area
-        print '  Pixel area           =', pixel_area
+    print('  Input file           = %s' % cube_filename)
+    print('  Frequency            = %.4f MHz' % (freqHz / 1e6))
+    print('  Cube image size      =', im0.shape[1])
+    print('  No. sources          = %i [%i %s]' %
+          (len(sky), size**2-len(sky), 'removed (==0.0)'))
+    print('  Output sky model     =', osm_filename)
+    print('  Writing FITS images  =', save_fits)
+    if save_fits:
+        print('  Beam area            =', beam_area)
+        print('  Pixel area           =', pixel_area)
 
     return len(sky)
 
+
 def set_setting(ini, key, value):
-    from subprocess import call
+    """Set a setting into an OSKAR ini file."""
     call(["oskar_settings_set", "-q", ini, key, str(value)])
 
+
 def run_interferometer(ini, verbose=True):
-    from subprocess import call
+    """Run the OSKAR interferometry simulator."""
     if verbose:
         call(["oskar_sim_interferometer", ini])
     else:
         call(["oskar_sim_interferometer", "-q", ini])
 
+
 def dict_to_settings(settings_dict, filename):
+    """Convert a python dictionary to an OSKAR ini settings file."""
     for group in sorted(settings_dict.keys()):
         for key in sorted(settings_dict[group].keys()):
             key_ = group+key
             value_ = settings_dict[group][key]
             set_setting(filename, key_, value_)
 
+
 def require_oskar_version(version):
-    import subprocess
-    import re
+    """Check for a specified version of OSKAR."""
     try:
-        subprocess.call(['oskar_sim_interferometer', '--version'],
-            stdout=subprocess.PIPE, stderr=subprocess.PIPE);
+        call(['oskar_sim_interferometer', '--version'], stdout=PIPE,
+             stderr=PIPE)
     except OSError:
         raise Exception('OSKAR not found. Check your PATH settings.')
-    proc = subprocess.Popen('oskar_sim_interferometer --version', \
-        stdout=subprocess.PIPE, shell=True)
+    proc = Popen('oskar_sim_interferometer --version', stdout=PIPE, shell=True)
     (out,err) = proc.communicate()
     out = out.strip('\n\r')
     ver = re.split('\.|-', out)
@@ -301,18 +326,31 @@ def require_oskar_version(version):
     if len(version) == 4: sVersion='%s-%s' % (sVersion, version[3])
     sVer = '%i.%i.%i' % (ver[0], ver[1], ver[2])
     if len(ver) == 4: sVer='%s-%s' % (sVer, ver[3])
-    failMsg = "ERROR: This script requires OSKAR %s [found version %s]." % (sVersion, out)
-    if (len(ver)!=len(version)):
-        print failMsg
+    failMsg = ("ERROR: This script requires OSKAR %s [found version %s]." %
+               (sVersion, out))
+    if len(ver)!= len(version):
+        print(failMsg)
     for i in range(0, len(ver)):
-        if (ver[i] != version[i]): print failMsg
+        if ver[i] != version[i]:
+            print(failMsg)
     return ver
 
-# bw = Bandwidth in Hz, and obs_length in seconds.
-# based on http://www.skatelescope.org/uploaded/59513_113_Memo_Nijboer.pdf
+
 def evaluate_noise_rms_Jy(freqHz, bw, obs_length):
-    import numpy as np
-    from User_defined_variables.USER_DEFINED import runtime_variables as rv
+    """
+    Evaluate baseline noise RMS, in Jy.
+
+    see: http://www.skatelescope.org/uploaded/59513_113_Memo_Nijboer.pdf
+
+    Args:
+        freqHz (float): Frequency, in Hz
+        bw (float): Bandwidth, in Hz
+        obs_length (float): Observation length, in seconds
+
+    Returns:
+        Noise RMS in Jy
+    """
+
 
     c0 = 299792458. #cw  m/s
     kB = 1.3806488e-23 #cw m^2 kg s^{-2} K^{-1}
@@ -337,31 +375,25 @@ def evaluate_noise_rms_Jy(freqHz, bw, obs_length):
     A_eff = np.minimum(A_sparse, A_physical)
 
     # Get system temperature.
-    T_sky = 60.0 * np.power(lambda_, 2.55) # "Standard" empirical T_sky
+    T_sky = 60.0 * lambda_**2.55 # "Standard" empirical T_sky
     T_sys = T_sky + T_recv
 
     # Get RMS noise per baseline for single polarisation.
     SEFD_station = ((2.0 * kB * T_sys) / (eta_s * A_eff * N_antenna)) #cw replaced station size with Nantenna
     SEFD_station *= 1e26 # Convert to Jy
-    sigma_pq = SEFD_station / np.sqrt(2.0 * bw * obs_length)
-
-    # print 'Noise:'
-    # print '- Frequency          = %.1f MHz (wavelength = %.1f m)' % (freqHz/1.e6, lambda_)
-    # print '- Tsys               = %.1f K' % (T_sys)
-    # print '- SEFD (station)     = %.1f kJy' % (SEFD_station*1e-3)
-    # print '- Observation length = %.1f hours' % (obs_length / 3600.0)
-    # print '- sigma_pq           = %.1f mJy' % (sigma_pq*1e3)
+    sigma_pq = SEFD_station / (2.0 * bw * obs_length)**0.5
 
     return sigma_pq
 
-def create_settings(freqHz, sky_model_name, ra0_deg, dec0_deg, ms_name,
-    start_time, obs_length, num_time_steps, uvmax, add_noise, noise_rms_Jy, noise_seed):
-     '''cw This has been adjusted to pull all variables from the centralised
-        User defined variable file in the ./User_defined_variables/ folder.
-     '''
 
-    from User_defined_variables.USER_DEFINED import runtime_variables as rv
-    s = {}
+def create_settings(freqHz, sky_model_name, ra0_deg, dec0_deg, ms_name,
+                    start_time, obs_length, num_time_steps, uvmax, add_noise,
+                    noise_rms_Jy, noise_seed):
+    """Create dictionary of simulation settings.
+    cw This has been adjusted to pull all variables from the centralised
+       User defined variable file in the ./User_defined_variables/ folder.
+    """
+    s = dict()
     s['simulator/'] = {
         'max_sources_per_chunk':rv.user_adv['max_chunks'], #cw 65536,
         'double_precision':rv.user_adv['dbl_precision'], #cw 'true',
@@ -404,7 +436,7 @@ def create_settings(freqHz, sky_model_name, ra0_deg, dec0_deg, ms_name,
         'length':obs_length,
         'num_time_steps':num_time_steps
     }
-    if add_noise == False:
+    if not add_noise:
         s['sky/'] = {
             'oskar_sky_model/file':sky_model_name,
             'advanced/apply_horizon_clip':rv.user_adv['horizon_clip'] #cw 'false'
@@ -441,11 +473,6 @@ def create_settings(freqHz, sky_model_name, ra0_deg, dec0_deg, ms_name,
 
 
 if __name__ == '__main__':
-    import sys
-    import os
-    import numpy as np
-    from User_defined_variables.USER_DEFINED import runtime_variables as rv
-
     '''cw if len(sys.argv) != 5:
              print 'Usage: ./sim.py [channel] [generate data] [run sim] [mode 1=fg,2=cs_sf_tapered,3=noise]'
 
@@ -453,7 +480,8 @@ if __name__ == '__main__':
     end_channel = start_channel
     generate_data = int(sys.argv[2])
     run_sim = int(sys.argv[3])
-    mode = int(sys.argv[4])'''
+    mode = int(sys.argv[4])
+    '''
 
     #cw start added block:
     '''
@@ -465,7 +493,10 @@ if __name__ == '__main__':
     '''
     if len(sys.argv) < 5:
         if len(sys.argv) != 7:
-            print 'Usage (cw updated): python ./runOSKAR.py [sky model] [start channel] [end channel] [mode 1=fg,2=cs_sf_tapered,3=noise]  [generate data (optional)] [run sim (optional)]'
+            print('Usage (cw updated): python ./runOSKAR.py '
+                  '[sky model] [start channel] [end channel] '
+                  '[mode 1=fg,2=cs_sf_tapered,3=noise] '
+                  '[generate data (optional)] [run sim (optional)]')
             sys.exit(1)
 
     sky_root_name = str(sys.argv[1])
@@ -479,25 +510,25 @@ if __name__ == '__main__':
     else:
         generate_data = int(sys.argv[5])
         run_sim = int(sys.argv[6])
-    print sky_root_name, start_channel, end_channel, mode, generate_data, run_sim
+    print(sky_root_name, start_channel, end_channel, mode, generate_data, run_sim)
 
     # Sky model data.
     #cw these variables are now defined in User_defined_variables/USER_DEFINED.py
-    fov_deg  = rv.user_sky['fov_deg'] #10.0
+    fov_deg = rv.user_sky['fov_deg'] #10.0
     num_pixels_side = rv.user_sky['num_pixels_side'] #512
-    ra0_deg  = rv.user_sky['ra0_deg'] #0.0
+    ra0_deg = rv.user_sky['ra0_deg'] #0.0
     dec0_deg = rv.user_sky['dec0_deg'] #89.0
     upscale_factor = rv.user_sky['upscale_factor'] #2.0
     noise_obs_length = rv.user_sky['noise_obs_length'] #600.0 * 3600.0
     noise_bw = rv.user_sky['noise_bw'] #183.0e3
 
-    print fov_deg
-    print num_pixels_side
-    print ra0_deg
-    print dec0_deg
-    print upscale_factor
-    print noise_obs_length
-    print noise_bw #'''
+    print(fov_deg)
+    print(num_pixels_side)
+    print(ra0_deg)
+    print(dec0_deg)
+    print(upscale_factor)
+    print(noise_obs_length)
+    print(noise_bw) #'''
     #cw end added block
 
     if mode == 1:
@@ -510,24 +541,24 @@ if __name__ == '__main__':
         #cw (managed by [sky model argv])sky_root_name = 'noise'
         add_noise = True
     else:
-        print 'ERROR: Invalid mode option.'
+        print('ERROR: Invalid mode option.')
         os.exit(1)
 
     cube_filename = '%s.fits' % (sky_root_name)
-    print cube_filename
+    print(cube_filename)
 
     #cw Added creation of Models folder as it's use was hardcoded, but it's existence not
     setup_data_dirs(['Vis','Ini','Models'])
     rootname  = os.path.basename(sky_root_name) #cw addition to allow flexibility of sky model location
-    if generate_data == True and mode != 3:
+    if generate_data and mode != 3:
         for channelID in range(start_channel, end_channel + 1):
             # Generate sky model from slice of FITS cube.
             osm_filename  = 'Models/%s_%03i.osm' % (rootname, channelID) #cw replaced sky_root_name with rootname
-            cube_to_osm(cube_filename, fov_deg, channelID, ra0_deg, dec0_deg, \
-                osm_filename, upscale_factor, True)
+            cube_to_osm(cube_filename, fov_deg, channelID, ra0_deg, dec0_deg,
+                        osm_filename, upscale_factor, True)
 
-    if run_sim == True:
-        require_oskar_version([2,6,0,'trunk'])
+    if run_sim:
+        require_oskar_version([2, 6, 0,'trunk'])
         for channelID in range(start_channel, end_channel + 1):
 
             # Set up parameters.
@@ -540,23 +571,23 @@ if __name__ == '__main__':
             obs_interval = rv.user_obs['obs_interval'] #cw 10.0
             num_time_steps = int(np.ceil(obs_length / obs_interval))
             uvmax = (upscale_factor * num_pixels_side) / \
-                (2.0 * fov_deg * np.pi/180.0)
+                    (2.0 * fov_deg * np.pi/180.0)
             noise_rms_Jy = evaluate_noise_rms_Jy(freqHz, noise_bw, noise_obs_length)
 
             # cw print start_time, obs_length, obs_interval
 
             # Create settings file.
-            noise_seed = channelID+100
+            noise_seed = channelID + 100
             '''
             #cw
             The following creates a dictionary of the user defined settings
             and then generates an ini file that OSKAR may use.
             '''
             s = create_settings(freqHz, osm_filename, ra0_deg, dec0_deg,
-                ms_name, start_time, obs_length, num_time_steps, uvmax,
-                add_noise, noise_rms_Jy, noise_seed)
+                                ms_name, start_time, obs_length, num_time_steps,
+                                uvmax, add_noise, noise_rms_Jy, noise_seed)
             dict_to_settings(s, ini)
 
-            print 'Running simulation for channel %i, freq = %.4f MHz' % \
-                    (channelID, freqHz/1.0e6)
+            print('Running simulation for channel %i, freq = %.4f MHz' %
+                  (channelID, freqHz / 1.0e6))
             run_interferometer(ini)
