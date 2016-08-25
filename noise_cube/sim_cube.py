@@ -333,7 +333,7 @@ def eval_beam_area(psf_cube, l_cut_outer, fov_deg, freqs, start_freq,
         c2 = centre + i0 + 1
         crop = image[c1:c2, c1:c2]
 
-        # Get grop image coordinates
+        # Get group image coordinates
         crop_size = crop.shape[0]
         crop_centre = crop_size // 2
         l = np.arange(-crop_centre, crop_centre + 1) * lm_inc

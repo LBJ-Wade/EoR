@@ -32,10 +32,12 @@ echo ${fnamefg}
 echo ${fnamecs}
 echo ${fnameno}
 
-''' USER: Submit three parallel realisations of the OSKAR code with jobfile run_sim.tesla
-    (this is for use on the Cambs HPC cluster and will be need to be ammended for other clusters)
-    running on foregrounds, cosmological signal and noise (top to bottom).
-     '''
+'''
+USER: Submit three parallel realisations of the OSKAR code with jobfile
+run_sim.tesla (this is for use on the Cambs HPC cluster and will be need to be
+ammended for other clusters) running on foregrounds, cosmological signal and
+noise (top to bottom).
+'''
 sbatch submit_sim.tesla ${fnamefg} ${start_channel} ${end_channel} 1
 sbatch submit_sim.tesla ${fnamecs} ${start_channel} ${end_channel} 2
 sbatch submit_sim.tesla ${fnameno} ${start_channel} ${end_channel} 3

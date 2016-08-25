@@ -31,7 +31,7 @@ def setup_data_dirs(dir_list):
 def channel_to_freq(idx):
     """Convert channel index to frequency, in hz"""
     freq0 = rv.user_obs['start_freq'] #cw 115.0e6
-    inc   = rv.user_obs['freq_inc'] #cw 0.5e6
+    inc = rv.user_obs['freq_inc'] #cw 0.5e6
     return freq0 + (idx * inc)
 
 
