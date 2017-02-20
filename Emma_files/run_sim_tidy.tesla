@@ -1,0 +1,84 @@
+#!/bin/bash
+
+#! sbatch directives ##########################################################
+
+#SBATCH -p tesla
+#! Name of the job:
+#SBATCH -J OSKAR-EOR-SIM
+#! Which project should be charged (NB Wilkes projects end in '-GPU'):
+#SBATCH -A SKA-SDP-GPU
+#! How many whole nodes should be allocated?
+#SBATCH --nodes=1
+#! How many (MPI) tasks will there be in total? (<=nodes*12)
+#SBATCH --ntasks=1
+#! How much wallclock time will be required?
+#SBATCH --time=2-00:00:00
+#! Prevent the job from being requeued
+#SBATCH --no-requeue
+#! What types of email messages do you wish to receive?
+#SBATCH --mail-type=FAIL
+
+#! ############################################################
+#! Modify the settings below to specify the application's environment, location 
+#! and launch method:
+
+#! Optionally modify the environment seen by the application
+#! (note that SLURM reproduces the environment at submission irrespective of ~/.bashrc):
+. /etc/profile.d/modules.sh      # Leave this line (enables the module command)
+module purge                     # Removes all modules still loaded
+module load default-wilkes       # REQUIRED - loads the basic environment
+
+#! Insert additional module load commands after this line if needed:
+module load use.own
+module load oskar/2.6.1
+
+#! Full path to application executable: 
+application="python sim_tidy.py"
+
+#------------------------------------------------------------------------------
+# This script takes 3 arguments!
+#   1. Frequency channel [0-169]
+#   2. Run mode [1 = fg, 2 = cs_sf_tapered, 3 = noise]
+#   3. Filename
+#------------------------------------------------------------------------------
+
+channel=$1
+run_mode=$2
+fname=$3
+fov=$4
+pix_side=$5
+telescope=$6
+field=$7
+telescope_model=$8
+
+#! Run options for the application:
+# <channel> <generate_data> <run_sim> <mode> <fname> <fov_deg> <pix_side> <telescope> <field>
+options="$channel 1 1 $run_mode $fname $fov $pix_side $telescope $field $telescope_model"
+
+#! Work directory
+workdir="$SLURM_SUBMIT_DIR"                           
+
+export OMP_NUM_THREADS=12
+
+CMD="$application $options"
+
+###############################################################
+### You should not have to change anything below this line ####
+###############################################################
+
+cd $workdir
+echo -e "Changed directory to `pwd`.\n"
+
+JOBID=$SLURM_JOB_ID
+
+echo -e "JobID: $JOBID\n======"
+echo "Time: `date`"
+echo "Running on master node: `hostname`"
+echo "Current directory: `pwd`"
+
+echo -e "\nExecuting command:\n==================\n$CMD\n"
+T0="$(date +%s)"
+eval $CMD 
+T1="$(($(date +%s)-T0))"
+echo "Time in seconds: ${T1}"
+
