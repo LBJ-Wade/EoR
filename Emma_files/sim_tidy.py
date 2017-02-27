@@ -381,16 +381,17 @@ def create_settings(freqHz, sky_model_name, ra0_deg, dec0_deg, ms_name,
         s['sky/'] = {
             'oskar_sky_model/file':sky_model_name,
             'advanced/apply_horizon_clip':'false'
+        }    
+        s['interferometer/'] = {
+	    #'oskar_vis_filename':ms_name[:-3]+'.vis',
+            'channel_bandwidth_hz':183e3,
+            'time_average_sec':60.0,
+            'ms_filename':ms_name,
+            'uv_filter_min':'min',
+            'uv_filter_max':'max',
+            'uv_filter_units':'Wavelengths',
         }
-    s['interferometer/'] = {
-	#'oskar_vis_filename':ms_name[:-3]+'.vis',
-        'channel_bandwidth_hz':183e3,
-        'time_average_sec':10.0,
-        'ms_filename':ms_name,
-        'uv_filter_min':'min',
-        'uv_filter_max':'max',
-        'uv_filter_units':'Wavelengths',
-    }
+    
     if add_noise == True:
         noise = {
             #'oskar_vis_filename':ms_name[:-3]+'.vis',
@@ -405,6 +406,15 @@ def create_settings(freqHz, sky_model_name, ra0_deg, dec0_deg, ms_name,
             'noise/freq/start':freqHz,
             'noise/freq/inc':0
         }
+        s['interferometer/'] = {
+             #'oskar_vis_filename':ms_name[:-3]+'.vis',             'channel_bandwidth_hz':183e3,
+             'channel_bandwidth_hz':183e3,
+             'time_average_sec':10.0,
+             'ms_filename':ms_name,
+             'uv_filter_min':'min',
+             'uv_filter_max':'max',
+             'uv_filter_units':'Wavelengths',
+         }
         s['interferometer/'].update(noise)
     return s
 
@@ -473,7 +483,10 @@ if __name__ == '__main__':
         osm_filename  = 'models/%s.osm' % (sky_root_name)
         start_time = '01-01-2000 00:00:00.000'
         obs_length = 12.0 * 3600.0
-        obs_interval = 10.0
+        if add_noise == False:
+            obs_interval = 60.0
+        if add_noise == True:
+            obs_interval = 10.0
         num_time_steps = int(np.ceil(obs_length / obs_interval))
         uvmax = (upscale_factor * num_pixels_side) / \
             (2.0 * fov_deg * np.pi/180.0)
