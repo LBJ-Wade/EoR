@@ -337,7 +337,7 @@ def create_settings(freqHz, sky_model_name, ra0_deg, dec0_deg, ms_name,
             'aperture_array/array_pattern/enable':'true',
             'aperture_array/element_pattern/functional_type':'Dipole',
             'aperture_array/element_pattern/dipole_length':0.5,
-            'aperture_array/element_patternfdsfsfds/dipole_length_units':'Wavelengths',
+            'aperture_array/element_pattern/dipole_length_units':'Wavelengths',
             # ------
             #'station_type':'Isotropic',
             # -----
@@ -353,12 +353,12 @@ def create_settings(freqHz, sky_model_name, ra0_deg, dec0_deg, ms_name,
             'longitude_deg':116.7644482,
             'latitude_deg': -26.82472208,
             'pol_mode':'Scalar',
-            'normalise_beams_at_phase_centre':'true',
-            'allow_station_beam_duplication':'true',
-            'aperture_array/array_pattern/enable':'true',
-            'aperture_array/element_pattern/functional_type':'Dipole',
-            'aperture_array/element_pattern/dipole_length':0.5,
-            'aperture_array/element_patternfdsfsfds/dipole_length_units':'Wavelengths',
+            #'normalise_beams_at_phase_centre':'true',
+            #'allow_station_beam_duplication':'true',
+            #'aperture_array/array_pattern/enable':'true',
+            #'aperture_array/element_pattern/functional_type':'Dipole',
+            #'aperture_array/element_pattern/dipole_length':0.5,
+            #'aperture_array/element_pattern/dipole_length_units':'Wavelengths',
             # ------
             #'station_type':'Isotropic',
             # -----
@@ -481,7 +481,11 @@ if __name__ == '__main__':
         ms_name = 'vis/%s_%s_%s_%s_%02d_%04d.ms' % (sky_root_name, telescope, telescope_model, field, fov_deg, num_pixels_side)
         ini = 'ini/%s_%s_%s_%s_%02d_%04d.ini' % (sky_root_name, telescope, telescope_model, field, fov_deg, num_pixels_side)
         osm_filename  = 'models/%s.osm' % (sky_root_name)
-        start_time = '01-01-2000 00:00:00.000'
+        if (telescope == 'SKA'):
+            # this start time keeps EOR0 above horizon for 12 hours. 
+            start_time = '01-01-2000 00:00:00.000'
+        elif (telescope == 'LOFAR'):
+            start_time = '2000-01-01 03:30:00'
         obs_length = 12.0 * 3600.0
         if add_noise == False:
             obs_interval = 60.0
