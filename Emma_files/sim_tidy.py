@@ -331,7 +331,7 @@ def create_settings(freqHz, sky_model_name, ra0_deg, dec0_deg, ms_name,
             'input_directory':'models/'+telescope_model+'.tm',
             'longitude_deg':6.868638889,
             'latitude_deg':52.726305556,
-	    'pol_mode':'Scalar',
+	    'pol_mode':'Scalar', #Scalar for just I
             'normalise_beams_at_phase_centre':'true',
             'allow_station_beam_duplication':'true',
             'aperture_array/array_pattern/enable':'true',
@@ -437,7 +437,7 @@ if __name__ == '__main__':
     # Sky model data.
 #    fov_deg  = 10.0
 #    num_pixels_side = 1200
-    fov_deg  = int(sys.argv[6])#5.0
+    fov_deg  = float(sys.argv[6])#5.0
     num_pixels_side = int(sys.argv[7])#512
     field = sys.argv[9]
     telescope = sys.argv[8]
@@ -478,14 +478,14 @@ if __name__ == '__main__':
 	      
         # Set up parameters.
         freqHz = freq*1.0e6
-        ms_name = 'vis/%s_%s_%s_%s_%02d_%04d.ms' % (sky_root_name, telescope, telescope_model, field, fov_deg, num_pixels_side)
-        ini = 'ini/%s_%s_%s_%s_%02d_%04d.ini' % (sky_root_name, telescope, telescope_model, field, fov_deg, num_pixels_side)
+        ms_name = 'vis/%s_%s_%s_%s_%03.1f_%04d.ms' % (sky_root_name, telescope, telescope_model, field, fov_deg, num_pixels_side)
+        ini = 'ini/%s_%s_%s_%s_%03.1f_%04d.ini' % (sky_root_name, telescope, telescope_model, field, fov_deg, num_pixels_side)
         osm_filename  = 'models/%s.osm' % (sky_root_name)
         if (telescope == 'SKA'):
             # this start time keeps EOR0 above horizon for 12 hours. 
-            start_time = '01-01-2000 00:00:00.000'
-        elif (telescope == 'LOFAR'):
             start_time = '2000-01-01 03:30:00'
+        elif (telescope == 'LOFAR'):
+            start_time = '01-01-2000 00:00:00.000'
         obs_length = 12.0 * 3600.0
         if add_noise == False:
             obs_interval = 60.0
