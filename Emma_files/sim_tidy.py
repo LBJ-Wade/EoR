@@ -383,7 +383,7 @@ def create_settings(freqHz, sky_model_name, ra0_deg, dec0_deg, ms_name,
             'advanced/apply_horizon_clip':'false'
         }    
         s['interferometer/'] = {
-	    #'oskar_vis_filename':ms_name[:-3]+'.vis',
+	    'oskar_vis_filename':ms_name[:-3]+'.vis',
             'channel_bandwidth_hz':183e3,
             'time_average_sec':60.0,
             'ms_filename':ms_name,
