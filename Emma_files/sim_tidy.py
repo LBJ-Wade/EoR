@@ -341,7 +341,7 @@ def create_settings(freqHz, sky_model_name, ra0_deg, dec0_deg, ms_name,
             # ------
             #'station_type':'Isotropic',
             # -----
-            #'station_type':'Gaussian beam',
+           'station_type':'Gaussian beam',
             #'gaussian_beam/fwhm_deg':3.8,
             #'gaussian_beam/ref_freq_hz':150000000
             'station_type':'Aperture array'
@@ -352,7 +352,7 @@ def create_settings(freqHz, sky_model_name, ra0_deg, dec0_deg, ms_name,
             'input_directory':'models/'+telescope_model+'.tm',
             'longitude_deg':116.7644482,
             'latitude_deg': -26.82472208,
-            'pol_mode':'Scalar',
+            'pol_mode':'Full',
             'normalise_beams_at_phase_centre':'true',
             'allow_station_beam_duplication':'true',
             'aperture_array/array_pattern/enable':'true',
@@ -383,7 +383,7 @@ def create_settings(freqHz, sky_model_name, ra0_deg, dec0_deg, ms_name,
             'advanced/apply_horizon_clip':'false'
         }    
         s['interferometer/'] = {
-	    'oskar_vis_filename':ms_name[:-3]+'.vis',
+	#    'oskar_vis_filename':ms_name[:-3]+'.vis',
             'channel_bandwidth_hz':183e3,
             'time_average_sec':60.0,
             'ms_filename':ms_name,
@@ -417,6 +417,167 @@ def create_settings(freqHz, sky_model_name, ra0_deg, dec0_deg, ms_name,
          }
         s['interferometer/'].update(noise)
     return s
+
+def add_time(date_time,time_step):
+	'''Take the time string format that oskar uses ('23-08-2013 17:54:32.0'), and add a time time_step (seconds).
+	Return in the same format - NO SUPPORT FOR CHANGES MONTHS CURRENTLY!!'''
+	date,time = date_time.split()
+	day,month,year = map(int,date.split('-'))
+	hours,mins,secs = map(float,time.split(':'))
+	##Add time
+	secs += time_step
+	if secs >= 60.0:
+		##Find out full minutes extra and take away
+		ext_mins = int(secs / 60.0)
+		secs -= 60*ext_mins
+		mins += ext_mins
+		if mins >= 60.0:
+			ext_hours = int(mins / 60.0)
+			mins -= 60*ext_hours
+			hours += ext_hours
+			if hours >= 24.0:
+				ext_days = int(hours / 24.0)
+				hours -= 24*ext_days
+				day += ext_days
+			else:
+				pass
+		else:
+			pass
+	else:
+		pass
+	return '%02d-%02d-%d %d:%02d:%05.2f' %(day,month,year,int(hours),int(mins),secs)
+
+		
+def create_uvfits(template_uvfits=None, freq_cent=None, ra_point=None, dec_point=None, oskar_vis_tag=None, output_uvfits_name=None,date=None):
+	'''Takes OSKAR uv data and converts into a uvfits file'''
+	int_jd, float_jd = calc_jdcal(date)
+	
+	template_file = fits.open(template_uvfits)
+	template_data = template_file[0].data
+	antenna_table = template_file[1].data
+
+	# Create uv structure by hand, probably there is a better way of doing this but the uvfits structure is kind of finicky
+	n_freq = 1 # only one frequency per uvfits file as read by the RTS
+
+	n_data = len(template_data)
+
+	v_container = zeros((n_data,1,1,1,n_freq,4,3))
+	uu = zeros(n_data)
+	vv = zeros(n_data)
+	ww = zeros(n_data)
+	baseline = zeros(n_data)
+	date_array = zeros(n_data)
+	
+	xx_us,xx_vs,xx_ws,xx_res,xx_ims = get_osk_data(oskar_vis_tag=oskar_vis_tag,polarisation='XX')
+	yy_us,yy_vs,yy_ws,yy_res,yy_ims = get_osk_data(oskar_vis_tag=oskar_vis_tag,polarisation='YY')
+	xy_us,xy_vs,xy_ws,xy_res,xy_ims = get_osk_data(oskar_vis_tag=oskar_vis_tag,polarisation='XY')
+	yx_us,yx_vs,yx_ws,yx_res,yx_ims = get_osk_data(oskar_vis_tag=oskar_vis_tag,polarisation='YX')
+
+
+	for i in range(len(template_data)):
+		xx_list = [xx_res[i],xx_ims[i],1.0]
+		yy_list = [yy_res[i],yy_ims[i],1.0]
+		xy_list = [xy_res[i],xy_ims[i],1.0]
+		yx_list = [yx_res[i],yx_ims[i],1.0]
+		
+		uvdata = [xx_list,yy_list,xy_list,yx_list]
+		uvdata = array(uvdata)
+		uvdata.shape = (4,3)
+		
+		v_container[i] = uvdata
+		uu[i] = xx_us[i] / freq_cent
+		vv[i] = xx_vs[i] / freq_cent
+		ww[i] = xx_ws[i] / freq_cent
+		baseline[i] = template_data[i][3]
+		date_array[i] = float_jd
+		rotate_phase(xx_ws[i],v_container[i][0,0,0,0,:,:])
+
+	##UU, VV, WW don't actually get read in by RTS - might be an issue with
+	##miriad/wsclean however, as it looks like oskar w = negative maps w
+	uvparnames = ['UU','VV','WW','BASELINE','DATE']
+	parvals = [uu,vv,ww,baseline,date_array]
+		
+	uvhdu = fits.GroupData(v_container,parnames=uvparnames,pardata=parvals,bitpix=-32)
+	uvhdu = fits.GroupsHDU(uvhdu)
+
+	###Try to copy MAPS as sensibly as possible
+	uvhdu.header['CTYPE2'] = 'COMPLEX '
+	uvhdu.header['CRVAL2'] = 1.0
+	uvhdu.header['CRPIX2'] = 1.0
+	uvhdu.header['CDELT2'] = 1.0
+
+	##This means it's linearly polarised
+	uvhdu.header['CTYPE3'] = 'STOKES '
+	uvhdu.header['CRVAL3'] = -5.0
+	uvhdu.header['CRPIX3'] =  1.0
+	uvhdu.header['CDELT3'] = -1.0
+
+	uvhdu.header['CTYPE4'] = 'FREQ'
+	###Oskar/CASA for some reason adds half of the frequency specified in the 
+	###simulation setup. I think this is happens because CASA is unsure
+	###what 'channel' the data is - when you run with multiple channels, they
+	###are all set to spw = 0, but the output freq is correct. Somethig funky anyway
+	###For one channel, set by hand
+	uvhdu.header['CRVAL4'] = freq_cent ##(sim freq + half channel width)
+	uvhdu.header['CRPIX4'] = template_file[0].header['CRPIX4']
+	uvhdu.header['CDELT4'] = template_file[0].header['CDELT4']
+
+	uvhdu.header['CTYPE5'] = template_file[0].header['CTYPE5']
+	uvhdu.header['CRVAL5'] = template_file[0].header['CRVAL5']
+	uvhdu.header['CRPIX5'] = template_file[0].header['CRPIX5']
+	uvhdu.header['CDELT5'] = template_file[0].header['CDELT5']
+
+	uvhdu.header['CTYPE6'] = template_file[0].header['CTYPE6']
+	uvhdu.header['CRVAL6'] = template_file[0].header['CRVAL6']
+	uvhdu.header['CRPIX6'] = template_file[0].header['CRPIX6']
+	uvhdu.header['CDELT6'] = template_file[0].header['CDELT6']
+
+	uvhdu.header['CTYPE7'] = template_file[0].header['CTYPE7']
+	uvhdu.header['CRVAL7'] = template_file[0].header['CRVAL7']
+	uvhdu.header['CRPIX7'] = template_file[0].header['CRPIX7']
+	uvhdu.header['CDELT7'] = template_file[0].header['CDELT7']
+
+	## Write the parameters scaling explictly because they are omitted if default 1/0
+
+	uvhdu.header['PSCAL1'] = 1.0
+	uvhdu.header['PZERO1'] = 0.0
+	uvhdu.header['PSCAL2'] = 1.0
+	uvhdu.header['PZERO2'] = 0.0
+	uvhdu.header['PSCAL3'] = 1.0
+	uvhdu.header['PZERO3'] = 0.0
+	uvhdu.header['PSCAL4'] = 1.0
+	uvhdu.header['PZERO4'] = 0.0
+	uvhdu.header['PSCAL5'] = 1.0
+
+	uvhdu.header['PZERO5'] = float(int_jd)
+
+	uvhdu.header['OBJECT']  = 'Undefined'                                                           
+	uvhdu.header['OBSRA']   = ra_point                                          
+	uvhdu.header['OBSDEC']  = dec_point
+	
+	##ANTENNA TABLE MODS======================================================================
+
+	template_file[1].header['FREQ'] = freq_cent
+	
+	##MAJICK uses this date to set the LST
+	dmy, hms = date.split()
+	day,month,year = map(int,dmy.split('-'))
+	hour,mins,secs = map(float,hms.split(':'))
+	
+	rdate = "%d-%02d-%2dT%2d:%2d:%.2f" %(year,month,day,hour,mins,secs)
+	
+	template_file[1].header['RDATE'] = rdate
+
+	## Create hdulist and write out file
+	hdulist = fits.HDUList(hdus=[uvhdu,template_file[1]])
+	hdulist.writeto(output_uvfits_name,clobber=True)
+	template_file.close()
+	hdulist.close()
+
+def run_command(cmd):
+        from subprocess import call
+	call(cmd,shell=True)
+
 
 
 if __name__ == '__main__':
@@ -484,6 +645,7 @@ if __name__ == '__main__':
         if (telescope == 'SKA'):
             # this start time keeps EOR0 above horizon for 12 hours. 
             start_time = '2000-01-01 03:30:00'
+	    #start_time = '2000-01-01 07:30:00' # this start time keeps EOR0 at highest elevation for the 4 hour required time to fill uv plane. 
         elif (telescope == 'LOFAR'):
             start_time = '01-01-2000 00:00:00.000'
         obs_length = 12.0 * 3600.0
@@ -505,3 +667,24 @@ if __name__ == '__main__':
         print 'Running simulation for freq = %.4f MHz' % \
                 (freqHz/1.0e6)
         run_interferometer(ini)
+
+##Convert the *.vis into an ascii that we can convert into uvfits
+ #       cmd = "oskar_vis_to_ascii_table -p 4 --baseline_wavelengths -h -v %s.vis %s_XX.txt" %(sky_root_name,sky_root_name)
+ #       run_command(cmd)
+#        cmd = "oskar_vis_to_ascii_table -p 5 --baseline_wavelengths -h -v %s.vis %s_XY.txt" %(sky_root_name,sky_root_name)
+#        run_command(cmd)
+#        cmd = "oskar_vis_to_ascii_table -p 6 --baseline_wavelengths -h -v %s.vis %s_YX.txt" %(sky_root_name,sky_root_name)
+#        run_command(cmd)
+#        cmd = "oskar_vis_to_ascii_table -p 7 --baseline_wavelengths -h -v %s.vis %s_YY.txt" %(sky_root_name,sky_root_name)
+#        run_command(cmd)
+    	##Clean up the oskar outputs apart from ms set
+#        cmd = "rm %s.ini %s.vis" %(sky_root_name,sky_root_name)
+#        run_command(cmd)
+
+#	time = add_time(start_time,0)
+
+#	oskar_vis_tag = "%s/%s" %('./vis',sky_root_name)
+#	output_uvfits_name = "%s/%s.uvfits" %('./vis',sky_root_name)
+	
+#        create_uvfits(template_uvfits=template_uvfits, freq_cent=freqHz, ra_point=ra0_deg, dec_point=dec0_deg, oskar_vis_tag=oskar_vis_tag, output_uvfits_name=output_uvfits_name, date=time)
+

@@ -1,0 +1,920 @@
+Changed directory to /scratch/hpcchap1/LOFAR_EoR_scripts_Nov_2014.
+
+JobID: 7572950
+======
+Time: Sun 28 May 12:47:44 BST 2017
+Running on master node: tesla110
+Current directory: /scratch/hpcchap1/LOFAR_EoR_scripts_Nov_2014
+
+Executing command:
+==================
+python sim_tidy.py 65.0 1 1 2 mock_FIRST+GLEAM_065.00MHz 10 20000 SKA EOR0 SKA_S2_stations
+
+ |                                                                   
+=|== OSKAR-2.6.1 starting at 2017-05-28, 12:47:50 (BST).
+ |                                                                   
+ | + Current dir is /scratch/hpcchap1/LOFAR_EoR_scripts_Nov_2014
+ | + Logging to file oskar_2017-05-28_124750.log
+ | + Running binary oskar_sim_interferometer
+ |                                                                   
+=|== Loading settings file 'ini/mock_FIRST+GLEAM_065.00MHz_SKA_SKA_S2_stations_EOR0_10.0_20000.ini'
+ |                                                                   
+ | + Simulator settings
+ |   - Double precision                  : true
+ |   - Keep log file                     : true
+ |   - Log progress status               : false
+ |   - Num. CUDA devices                 : 2
+ |   - Max sources per chunk             : 65536
+ | + Sky model settings
+ |   - Input OSKAR sky model file(s)
+ |       + File  0: models/mock_FIRST+GLEAM_065.00MHz.osm
+ | + Observation settings
+ |   - Phase centre RA [deg]             : 0.000
+ |   - Phase centre Dec [deg]            : -27.000
+ |   - Start frequency [Hz]              : 6.500e+07
+ |   - Num. frequency channels           : 1
+ |   - Frequency inc [Hz]                : 0.000e+00
+ |   - Start time (MJD)                  : 51544.145833
+ |   - Num. time steps                   : 720
+ |   - Length [sec]                      : 43200.0
+ | + Telescope model settings
+ |   - Input directory: models/SKA_S2_stations.tm
+ |   - Longitude [deg]                   : 116.8
+ |   - Latitude [deg]                    : -26.8
+ |   - Altitude [m]                      : 0.0
+ |   - Normalise beams at phase centre   : true
+ |   - Polarisation mode                 : Scalar
+ |   - Allow station beam duplication    : true
+ |   - Station type                      : Aperture array
+ |   - Aperture array settings
+ |     * Array pattern settings
+ |       + Enable array pattern          : true
+ |       + Normalise array pattern       : false
+ |     * Element pattern settings
+ |       + Enable numerical patterns     : true
+ |       + Functional pattern type       : Dipole
+ |       + Dipole length                 : 0.500
+ |       + Dipole length units           : Wavelengths
+ |       + Tapering options
+ |         - Tapering type               : None
+ | + Interferometer settings
+ |   - Channel bandwidth [Hz]            : 1.830e+05
+ |   - Time average [sec]                : 60.00
+ |   - Max. time samples per block       : 10
+ |   - System noise enabled              : false
+ |   - Output OSKAR visibility file: (null)
+ |   - Output Measurement Set name: vis/mock_FIRST+GLEAM_065.00MHz_SKA_SKA_S2_stations_EOR0_10.0_20000.ms
+ |                                                                   
+=|== Sky model
+ |                                                                   
+ | + Loading OSKAR sky model file 'models/mock_FIRST+GLEAM_065.00MHz.osm' ...
+ |   - done.
+ | + Computing source direction cosines...
+ |   - done.
+ | + Sky model summary
+ |   - Num. sources                      : 46921
+ |   - Num. chunks                       : 1
+ |   - Num. extended source chunks       : 0
+ |                                                                   
+=|== Telescope model
+ |                                                                   
+ | + Telescope model summary
+ |   - Num. stations                     : 476
+ |   - Max station size                  : 256
+ |   - Max station depth                 : 1
+ |   - Identical stations                : false
+ |                                                                   
+=|== Initial memory usage
+ |                                                                   
+ | + Memory on GPU 0 [Tesla K20c] is 33.5% (1.5/4.6 GB) used.
+ | + Memory on GPU 1 [Tesla K20c] is 33.5% (1.5/4.6 GB) used.
+ |                                                                   
+=|== Starting simulation...
+ |                                                                   
+ |   - Time   2/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time   1/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time   3/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time   4/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time   5/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time   6/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time   7/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time   8/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time   9/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time  10/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ | + Block  1/72 (  1%) complete. Simulation time elapsed: 12.113 s
+ |   - Time  11/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time  12/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time  13/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time  14/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time  15/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time  16/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time  17/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time  18/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time  19/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time  20/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ | + Block  2/72 (  3%) complete. Simulation time elapsed: 24.198 s
+ |   - Time  21/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time  22/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time  23/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time  24/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time  25/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time  26/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time  27/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time  28/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time  29/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time  30/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ | + Block  3/72 (  4%) complete. Simulation time elapsed: 36.273 s
+ |   - Time  32/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time  31/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time  33/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time  34/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time  35/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time  36/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time  37/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time  38/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time  39/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time  40/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ | + Block  4/72 (  6%) complete. Simulation time elapsed: 48.365 s
+ |   - Time  41/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time  42/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time  43/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time  44/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time  45/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time  46/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time  47/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time  48/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time  49/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time  50/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ | + Block  5/72 (  7%) complete. Simulation time elapsed: 60.454 s
+ |   - Time  52/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time  51/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time  53/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time  54/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time  55/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time  56/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time  57/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time  58/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time  59/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time  60/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ | + Block  6/72 (  8%) complete. Simulation time elapsed: 72.539 s
+ |   - Time  61/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources] |   - Time  62/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+
+ |   - Time  63/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time  64/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time  65/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time  66/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time  67/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time  68/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time  69/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time  70/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ | + Block  7/72 ( 10%) complete. Simulation time elapsed: 84.623 s
+ |   - Time  71/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time  72/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time  73/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time  74/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time  75/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time  76/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time  77/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time  78/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time  79/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time  80/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ | + Block  8/72 ( 11%) complete. Simulation time elapsed: 96.700 s
+ |   - Time  82/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time  81/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time  83/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time  84/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time  85/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time  86/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time  87/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time  88/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time  89/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time  90/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ | + Block  9/72 ( 12%) complete. Simulation time elapsed: 108.765 s
+ |   - Time  92/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time  91/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time  93/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time  94/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time  95/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time  96/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time  97/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time  98/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time  99/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 100/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ | + Block 10/72 ( 14%) complete. Simulation time elapsed: 120.843 s
+ |   - Time 101/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 102/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 103/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 104/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 105/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 106/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 107/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 108/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 109/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 110/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ | + Block 11/72 ( 15%) complete. Simulation time elapsed: 132.923 s
+ |   - Time 111/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources] |   - Time 112/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+
+ |   - Time 113/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 114/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 115/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 116/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 117/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 118/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 119/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 120/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ | + Block 12/72 ( 17%) complete. Simulation time elapsed: 145.003 s
+ |   - Time 121/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources] |   - Time 122/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+
+ |   - Time 123/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 124/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 125/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 126/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 127/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 128/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 129/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 130/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ | + Block 13/72 ( 18%) complete. Simulation time elapsed: 157.094 s
+ |   - Time 131/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 132/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 133/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 134/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 135/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 136/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 137/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 138/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 139/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 140/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ | + Block 14/72 ( 19%) complete. Simulation time elapsed: 169.174 s
+ |   - Time 141/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 142/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 143/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 144/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 145/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 146/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 147/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 148/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 149/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 150/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ | + Block 15/72 ( 21%) complete. Simulation time elapsed: 181.261 s
+ |   - Time 151/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources] |   - Time 152/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+
+ |   - Time 153/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 154/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 155/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 156/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 157/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 158/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 159/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 160/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ | + Block 16/72 ( 22%) complete. Simulation time elapsed: 193.342 s
+ |   - Time 161/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 162/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 163/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 164/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 165/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 166/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 167/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 168/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 169/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 170/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ | + Block 17/72 ( 24%) complete. Simulation time elapsed: 205.429 s
+ |   - Time 171/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 172/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 173/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 174/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 175/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 176/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 177/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 178/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 179/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 180/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ | + Block 18/72 ( 25%) complete. Simulation time elapsed: 217.507 s
+ |   - Time 181/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources] |   - Time 182/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+
+ |   - Time 183/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 184/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 185/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 186/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 187/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 188/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 189/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 190/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ | + Block 19/72 ( 26%) complete. Simulation time elapsed: 229.592 s
+ |   - Time 191/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 192/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 193/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 194/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 195/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 196/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 197/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 198/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 199/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 200/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ | + Block 20/72 ( 28%) complete. Simulation time elapsed: 241.672 s
+ |   - Time 201/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources] |   - Time 202/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+
+ |   - Time 203/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 204/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 205/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 206/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 207/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 208/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 209/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 210/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ | + Block 21/72 ( 29%) complete. Simulation time elapsed: 253.750 s
+ |   - Time 211/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 212/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 213/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 214/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 215/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 216/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 217/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 218/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 219/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 220/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ | + Block 22/72 ( 31%) complete. Simulation time elapsed: 265.829 s
+ |   - Time 222/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 221/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 223/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 224/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 225/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 226/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 227/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 228/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 229/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 230/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ | + Block 23/72 ( 32%) complete. Simulation time elapsed: 277.920 s
+ |   - Time 231/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 232/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 233/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 234/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 235/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 236/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 237/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 238/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 239/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 240/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ | + Block 24/72 ( 33%) complete. Simulation time elapsed: 289.993 s
+ |   - Time 241/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources] |   - Time 242/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+
+ |   - Time 243/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 244/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 245/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 246/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 247/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 248/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 249/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 250/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ | + Block 25/72 ( 35%) complete. Simulation time elapsed: 302.069 s
+ |   - Time 252/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 251/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 253/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 254/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 255/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 256/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 257/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 258/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 259/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 260/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ | + Block 26/72 ( 36%) complete. Simulation time elapsed: 314.145 s
+ |   - Time 261/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 262/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 263/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 264/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 265/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 266/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 267/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 268/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 269/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 270/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ | + Block 27/72 ( 38%) complete. Simulation time elapsed: 326.235 s
+ |   - Time 271/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources] |   - Time 272/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+
+ |   - Time 273/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 274/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 275/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 276/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 277/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 278/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 279/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 280/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ | + Block 28/72 ( 39%) complete. Simulation time elapsed: 338.316 s
+ |   - Time 281/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources] |   - Time 282/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+
+ |   - Time 283/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 284/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 285/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 286/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 287/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 288/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 289/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 290/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ | + Block 29/72 ( 40%) complete. Simulation time elapsed: 350.396 s
+ |   - Time 292/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 291/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 293/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 294/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 295/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 296/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 297/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 298/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 299/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 300/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ | + Block 30/72 ( 42%) complete. Simulation time elapsed: 362.468 s
+ |   - Time 301/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 302/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 303/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 304/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 305/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 306/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 307/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 308/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 309/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 310/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ | + Block 31/72 ( 43%) complete. Simulation time elapsed: 374.548 s
+ |   - Time 311/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 312/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 313/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 314/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 315/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 316/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 317/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 318/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 319/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 320/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ | + Block 32/72 ( 44%) complete. Simulation time elapsed: 386.630 s
+ |   - Time 321/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 322/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 323/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 324/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 325/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 326/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 327/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 328/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 329/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 330/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ | + Block 33/72 ( 46%) complete. Simulation time elapsed: 398.704 s
+ |   - Time 331/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 332/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 333/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 334/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 335/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 336/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 337/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 338/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 339/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 340/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ | + Block 34/72 ( 47%) complete. Simulation time elapsed: 410.797 s
+ |   - Time 341/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 342/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 343/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 344/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 345/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 346/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 347/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 348/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 349/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 350/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ | + Block 35/72 ( 49%) complete. Simulation time elapsed: 422.866 s
+ |   - Time 351/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources] |   - Time 352/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+
+ |   - Time 353/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 354/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 355/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 356/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 357/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 358/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 359/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 360/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ | + Block 36/72 ( 50%) complete. Simulation time elapsed: 434.946 s
+ |   - Time 361/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 362/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 363/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 364/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 365/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 366/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 367/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 368/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 369/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 370/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ | + Block 37/72 ( 51%) complete. Simulation time elapsed: 447.018 s
+ |   - Time 371/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 372/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 373/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 374/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 375/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 376/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 377/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 378/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 379/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 380/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ | + Block 38/72 ( 53%) complete. Simulation time elapsed: 459.087 s
+ |   - Time 381/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 382/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 383/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 384/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 385/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 386/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 387/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 388/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 389/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 390/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ | + Block 39/72 ( 54%) complete. Simulation time elapsed: 471.168 s
+ |   - Time 391/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 392/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 393/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 394/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 395/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 396/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 397/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 398/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 399/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 400/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ | + Block 40/72 ( 56%) complete. Simulation time elapsed: 483.252 s
+ |   - Time 401/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 402/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 403/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 404/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 405/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 406/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 407/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 408/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 409/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 410/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ | + Block 41/72 ( 57%) complete. Simulation time elapsed: 495.337 s
+ |   - Time 411/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources] |   - Time 412/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+
+ |   - Time 413/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 414/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 415/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 416/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 417/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 418/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 419/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 420/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ | + Block 42/72 ( 58%) complete. Simulation time elapsed: 507.409 s
+ |   - Time 421/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 422/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 423/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 424/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 425/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 426/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 427/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 428/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 429/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 430/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ | + Block 43/72 ( 60%) complete. Simulation time elapsed: 519.481 s
+ |   - Time 432/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 431/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 433/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 434/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 435/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 436/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 437/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 438/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 439/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 440/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ | + Block 44/72 ( 61%) complete. Simulation time elapsed: 531.556 s
+ |   - Time 441/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 442/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 443/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 444/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 445/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 446/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 447/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 448/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 449/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 450/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ | + Block 45/72 ( 62%) complete. Simulation time elapsed: 543.635 s
+ |   - Time 451/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 452/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 453/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 454/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 455/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 456/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 457/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 458/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 459/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 460/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ | + Block 46/72 ( 64%) complete. Simulation time elapsed: 555.707 s
+ |   - Time 461/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 462/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 463/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 464/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 465/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 466/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 467/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 468/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 469/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 470/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ | + Block 47/72 ( 65%) complete. Simulation time elapsed: 567.783 s
+ |   - Time 472/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 471/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 473/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 474/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 475/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 476/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 477/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 478/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 479/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 480/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ | + Block 48/72 ( 67%) complete. Simulation time elapsed: 579.866 s
+ |   - Time 481/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 482/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 483/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 484/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 485/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 486/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 487/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 488/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 489/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 490/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ | + Block 49/72 ( 68%) complete. Simulation time elapsed: 591.941 s
+ |   - Time 492/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 491/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 493/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 494/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 495/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 496/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 497/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 498/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 499/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 500/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ | + Block 50/72 ( 69%) complete. Simulation time elapsed: 604.017 s
+ |   - Time 501/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 502/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 503/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 504/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 505/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 506/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 507/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 508/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 509/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 510/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ | + Block 51/72 ( 71%) complete. Simulation time elapsed: 616.111 s
+ |   - Time 511/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources] |   - Time 512/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+
+ |   - Time 513/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 514/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 515/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 516/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 517/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 518/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 519/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 520/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ | + Block 52/72 ( 72%) complete. Simulation time elapsed: 628.188 s
+ |   - Time 521/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 522/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 523/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 524/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 525/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 526/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 527/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 528/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 529/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 530/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ | + Block 53/72 ( 74%) complete. Simulation time elapsed: 640.273 s
+ |   - Time 531/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 532/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 533/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 534/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 535/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 536/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 537/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 538/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 539/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 540/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ | + Block 54/72 ( 75%) complete. Simulation time elapsed: 652.351 s
+ |   - Time 542/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 541/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 543/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 544/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 545/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 546/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 547/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 548/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 549/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 550/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ | + Block 55/72 ( 76%) complete. Simulation time elapsed: 664.432 s
+ |   - Time 551/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 552/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 553/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 554/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 555/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 556/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 557/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 558/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 559/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 560/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ | + Block 56/72 ( 78%) complete. Simulation time elapsed: 676.511 s
+ |   - Time 561/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources] |   - Time 562/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+
+ |   - Time 563/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 564/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 565/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 566/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 567/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 568/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 569/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 570/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ | + Block 57/72 ( 79%) complete. Simulation time elapsed: 688.579 s
+ |   - Time 571/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 572/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 573/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 574/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 575/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 576/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 577/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 578/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 579/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 580/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ | + Block 58/72 ( 81%) complete. Simulation time elapsed: 700.660 s
+ |   - Time 582/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 581/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 583/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 584/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 585/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 586/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 587/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 588/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 589/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 590/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ | + Block 59/72 ( 82%) complete. Simulation time elapsed: 712.747 s
+ |   - Time 591/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources] |   - Time 592/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+
+ |   - Time 593/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 594/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 595/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 596/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 597/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 598/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 599/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 600/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ | + Block 60/72 ( 83%) complete. Simulation time elapsed: 724.823 s
+ |   - Time 601/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 602/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 603/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 604/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 605/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 606/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 607/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 608/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 609/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 610/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ | + Block 61/72 ( 85%) complete. Simulation time elapsed: 736.908 s
+ |   - Time 611/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources] |   - Time 612/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+
+ |   - Time 613/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 614/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 615/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 616/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 617/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 618/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 619/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 620/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ | + Block 62/72 ( 86%) complete. Simulation time elapsed: 748.974 s
+ |   - Time 621/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources] |   - Time 622/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+
+ |   - Time 623/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 624/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 625/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 626/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 627/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 628/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 629/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 630/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ | + Block 63/72 ( 88%) complete. Simulation time elapsed: 761.060 s
+ |   - Time 631/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 632/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 633/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 634/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 635/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 636/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 637/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 638/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 639/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 640/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ | + Block 64/72 ( 89%) complete. Simulation time elapsed: 773.133 s
+ |   - Time 642/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 641/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 643/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 644/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 645/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 646/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 647/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 648/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 649/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 650/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ | + Block 65/72 ( 90%) complete. Simulation time elapsed: 785.211 s
+ |   - Time 652/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 651/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 653/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 654/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 655/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 656/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 657/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 658/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 659/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 660/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ | + Block 66/72 ( 92%) complete. Simulation time elapsed: 797.285 s
+ |   - Time 662/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 661/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 663/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 664/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 665/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 666/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 667/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 668/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 669/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 670/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ | + Block 67/72 ( 93%) complete. Simulation time elapsed: 809.360 s
+ |   - Time 671/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 672/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 673/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 674/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 675/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 676/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 677/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 678/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 679/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 680/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ | + Block 68/72 ( 94%) complete. Simulation time elapsed: 821.441 s
+ |   - Time 681/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 682/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 683/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 684/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 685/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 686/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 687/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 688/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 689/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 690/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ | + Block 69/72 ( 96%) complete. Simulation time elapsed: 833.510 s
+ |   - Time 691/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 692/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 693/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 694/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 695/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 696/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 697/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 698/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 699/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 700/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ | + Block 70/72 ( 97%) complete. Simulation time elapsed: 845.591 s
+ |   - Time 702/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 701/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 703/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 704/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 705/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 706/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 707/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 708/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 709/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 710/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ | + Block 71/72 ( 99%) complete. Simulation time elapsed: 857.672 s
+ |   - Time 711/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 712/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 713/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 714/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 715/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 716/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 717/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 718/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ |   - Time 719/720, Chunk 1/1, Channel 1/1 [GPU 0, 46921 sources]
+ |   - Time 720/720, Chunk 1/1, Channel 1/1 [GPU 1, 46921 sources]
+ | + Block 72/72 (100%) complete. Simulation time elapsed: 869.756 s
+ |                                                                   
+=|== Final memory usage
+ |                                                                   
+ | + Memory on GPU 0 [Tesla K20c] is 33.5% (1.6/4.6 GB) used.
+ | + Memory on GPU 1 [Tesla K20c] is 33.5% (1.6/4.6 GB) used.
+ |                                                                   
+=|== Simulation timing
+ |                                                                   
+ | + Total wall time      : 880.515 s
+ | + Load                 : 8.958 s
+ | + Compute              : 869.499 s [GPU 0]
+ | + Compute              : 869.341 s [GPU 1]
+ | + Write                : 129.680 s
+ | + Compute components:
+ |   - Copy               :  0.1%
+ |   - Horizon clip       :  0.0%
+ |   - Jones E            : 21.6%
+ |   - Jones K            :  0.3%
+ |   - Jones join         :  0.3%
+ |   - Jones correlate    : 77.7%
+ |   - Other              :  0.0%
+ |                                                                   
+=|== Simulation complete
+ |                                                                   
+ | + Output(s):
+ |   - Measurement Set    : vis/mock_FIRST+GLEAM_065.00MHz_SKA_SKA_S2_stations_EOR0_10.0_20000.ms
+ |                                                                   
+=|== OSKAR-2.6.1 ending at 2017-05-28, 13:02:35 (BST).
+ |                                                                   
+Usage: ./sim_tidy.py [frequency] [generate data] [run sim] [mode 1=diffuse,2=osm,3=noise] [slice name] [fov_deg] [pix_side] [telescope] [field] [telescope model]
+65.0
+1 1 2
+- sigma_pq           = 39.9 mJy
+Running simulation for freq = 65.0000 MHz
+Time in seconds: 891

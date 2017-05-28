@@ -15,7 +15,7 @@ file_name=$9
 mode=${10}
 echo "mode $mode"
 start_channel=0
-end_channel_float=$(echo "scale=1;($f2-$f1)/$df" | bc)
+end_channel_float=$(echo "scale=2;($f2-$f1)/$df" | bc)
 end_channel=${end_channel_float%.*} 
 echo "start $start_channel"
 echo "end $end_channel"
@@ -25,7 +25,7 @@ for i in $(eval echo {$start_channel..$end_channel}); do
     echo "Channel $i"
     freq=$(echo "scale=1;$f1+$df*$i" | bc)
     echo $freq
-    printf -v fname2 "_%05.1fMHz" $freq
+    printf -v fname2 "_%06.2fMHz" $freq
     fname3=".fits"
 
     fname=$file_name$fname2

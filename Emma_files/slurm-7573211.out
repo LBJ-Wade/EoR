@@ -1,0 +1,91 @@
+Changed directory to /scratch/hpcchap1/LOFAR_EoR_scripts_Nov_2014.
+
+JobID: 7573211
+======
+Time: Sun 28 May 13:33:54 BST 2017
+Running on master node: tesla120
+Current directory: /scratch/hpcchap1/LOFAR_EoR_scripts_Nov_2014
+
+Executing command:
+==================
+python sim_tidy.py 65.0 1 1 2 mock_FIRST+GLEAM_065.00MHz 10 20000 SKA EOR0 SKA_S2_stations
+
+ |                                                                   
+=|== OSKAR-2.6.1 starting at 2017-05-28, 13:34:02 (BST).
+ |                                                                   
+ | + Current dir is /scratch/hpcchap1/LOFAR_EoR_scripts_Nov_2014
+ | + Logging to file oskar_2017-05-28_133402.log
+ | + Running binary oskar_sim_interferometer
+ |                                                                   
+=|== Loading settings file 'ini/mock_FIRST+GLEAM_065.00MHz_SKA_SKA_S2_stations_EOR0_10.0_20000.ini'
+ |                                                                   
+ | + Simulator settings
+ |   - Double precision                  : true
+ |   - Keep log file                     : true
+ |   - Log progress status               : false
+ |   - Num. CUDA devices                 : 2
+ |   - Max sources per chunk             : 65536
+ | + Sky model settings
+ |   - Input OSKAR sky model file(s)
+ |       + File  0: models/mock_FIRST+GLEAM_065.00MHz.osm
+ | + Observation settings
+ |   - Phase centre RA [deg]             : 0.000
+ |   - Phase centre Dec [deg]            : -27.000
+ |   - Start frequency [Hz]              : 6.500e+07
+ |   - Num. frequency channels           : 1
+ |   - Frequency inc [Hz]                : 0.000e+00
+ |   - Start time (MJD)                  : 51544.145833
+ |   - Num. time steps                   : 720
+ |   - Length [sec]                      : 43200.0
+ | + Telescope model settings
+ |   - Input directory: models/SKA_S2_stations.tm
+ |   - Longitude [deg]                   : 116.8
+ |   - Latitude [deg]                    : -26.8
+ |   - Altitude [m]                      : 0.0
+ |   - Normalise beams at phase centre   : true
+ |   - Polarisation mode                 : Full
+ |   - Allow station beam duplication    : true
+ |   - Station type                      : Aperture array
+ |   - Aperture array settings
+ |     * Array pattern settings
+ |       + Enable array pattern          : true
+ |       + Normalise array pattern       : false
+ |     * Element pattern settings
+ |       + Enable numerical patterns     : true
+ |       + Functional pattern type       : Dipole
+ |       + Dipole length                 : 0.500
+ |       + Dipole length units           : Wavelengths
+ |       + Tapering options
+ |         - Tapering type               : None
+ | + Interferometer settings
+ |   - Channel bandwidth [Hz]            : 1.830e+05
+ |   - Time average [sec]                : 60.00
+ |   - Max. time samples per block       : 10
+ |   - System noise enabled              : false
+ |   - Output OSKAR visibility file: (null)
+ |   - Output Measurement Set name: vis/mock_FIRST+GLEAM_065.00MHz_SKA_SKA_S2_stations_EOR0_10.0_20000.ms
+ |                                                                   
+=|== Sky model
+ |                                                                   
+ | + Loading OSKAR sky model file 'models/mock_FIRST+GLEAM_065.00MHz.osm' ...
+ |   - done.
+ | + Computing source direction cosines...
+ |   - done.
+ | + Sky model summary
+ |   - Num. sources                      : 46921
+ |   - Num. chunks                       : 1
+ |   - Num. extended source chunks       : 0
+ |                                                                   
+=|== Telescope model
+ |                                                                   
+ | + Telescope model summary
+ |   - Num. stations                     : 476
+ |   - Max station size                  : 256
+ |   - Max station depth                 : 1
+ |   - Identical stations                : false
+Usage: ./sim_tidy.py [frequency] [generate data] [run sim] [mode 1=diffuse,2=osm,3=noise] [slice name] [fov_deg] [pix_side] [telescope] [field] [telescope model]
+65.0
+1 1 2
+- sigma_pq           = 39.9 mJy
+Running simulation for freq = 65.0000 MHz
+Time in seconds: 17
